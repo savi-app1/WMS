@@ -31,7 +31,7 @@ procédure est décrite dans [DEPLOIEMENT.md](DEPLOIEMENT.md) (≈ 3 500 – 6 0
 | --- | --- | --- |
 | Types TypeScript (mode strict) | `npm run typecheck` | ✔ 0 erreur |
 | Analyse statique | `npm run lint` | ✔ 0 erreur, 0 avertissement |
-| Tests automatisés | `npm test` | ✔ **68 tests sur 68** |
+| Tests automatisés | `npm test` | ✔ **74 tests sur 74** |
 | Compilation de production | `npm run build` | ✔ toutes les routes compilées |
 | Parcours réel sur l'instance en ligne | vérification manuelle scriptée | ✔ commande créée, suivi client, connexion administrateur, page des commandes, export CSV |
 
@@ -43,13 +43,17 @@ procédure est décrite dans [DEPLOIEMENT.md](DEPLOIEMENT.md) (≈ 3 500 – 6 0
 - **Intégration (13)** : création de commande (prix recalculés côté serveur, prix ignoré du
   client, prix à confirmer), unicité des numéros, historique des statuts, annulation,
   statistiques (montants commandé / encaissé séparés), filtres de liste.
-- **Bout en bout (24)** : un serveur de production réel est démarré sur le port 3987 avec une
+- **Bout en bout (30)** : un serveur de production réel est démarré sur le port 3987 avec une
   base isolée, puis : pages publiques, sitemap/robots/manifeste, page produit sans prix inventé,
   refus des accès non authentifiés (401), boucle de redirection corrigée, connexion
   administrateur (401 puis 200), refus des mutations sans jeton CSRF (403), création de
   commande, refus du piège à robots, suivi client autorisé/refusé, rendu des **9 pages
   d'administration**, progression des statuts jusqu'à la livraison, blocage des transitions
-  depuis un état final, export CSV, statistiques, déconnexion.
+  depuis un état final, export CSV, statistiques, déconnexion ; administration du catalogue :
+  téléversement d'un visuel (re-encodé en webp, servi par `/api/media`), refus d'un fichier
+  qui n'est pas une image et d'une traversée de chemin, création d'un produit avec prix,
+  affichage public du prix, commande de ce produit avec un prix client falsifié ignoré par
+  le serveur, puis suppression du produit.
 
 ---
 

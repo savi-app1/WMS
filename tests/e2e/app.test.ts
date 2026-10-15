@@ -103,6 +103,8 @@ interface OrderResponse {
   publicToken: string;
   status: string;
   pricePending: boolean;
+  subtotalFcfa: number | null;
+  deliveryFeeFcfa: number | null;
   totalFcfa: number | null;
   message: string;
 }
@@ -439,6 +441,127 @@ describe('Parcours commande → traitement → livraison', () => {
 
     const afterLogout = await api('/api/admin/orders', { jar });
     expect(afterLogout.status).toBe(401);
+  });
+});
+
+describe('Administration : produits, visuels et prix', () => {
+  const jar = new CookieJar();
+  let createdId = 0;
+  let createdSlug = '';
+
+  it('connecte l’administrateur pour gérer le catalogue', async () => {
+    const response = await api('/api/auth/login', {
+      method: 'POST',
+      body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+      jar,
+    });
+    expect(response.status).toBe(200);
+    expect(jar.get('wms_csrf')).toBeTruthy();
+  });
+
+  it('téléverse un visuel : re-encodé en webp et servi par /api/media', async () => {
+    const sharp = (await import('sharp')).default;
+    const png = await sharp({
+      create: { width: 24, height: 16, channels: 3, background: { r: 220, g: 30, b: 45 } },
+    })
+      .png()
+      .toBuffer();
+
+    const form = new FormData();
+    form.set('file', new File([new Uint8Array(png)], 'visuel-test.png', { type: 'image/png' }));
+    form.set('alt', 'Visuel de vérification');
+
+    const response = await fetch(`${BASE_URL}/api/admin/upload`, {
+      method: 'POST',
+      headers: { Cookie: jar.header(), 'x-csrf-token': jar.get('wms_csrf') ?? '' },
+      body: form,
+    });
+    jar.absorb(response);
+    expect(response.status).toBe(201);
+
+    const data = await response.json();
+    expect(data.width).toBe(24);
+    expect(data.variants.md).toMatch(/^\/api\/media\/[0-9a-f-]+-md\.webp$/);
+    expect(data.variants.original).toMatch(/-original\.webp$/);
+
+    const media = await api(data.variants.md);
+    expect(media.status).toBe(200);
+    expect(media.headers.get('content-type')).toBe('image/webp');
+    expect(Number(media.headers.get('content-length'))).toBeGreaterThan(0);
+  });
+
+  it('refuse un fichier qui n’est pas une image et une traversée de chemin', async () => {
+    const form = new FormData();
+    form.set('file', new File([new Uint8Array([1, 2, 3])], 'faux.txt', { type: 'text/plain' }));
+    const response = await fetch(`${BASE_URL}/api/admin/upload`, {
+      method: 'POST',
+      headers: { Cookie: jar.header(), 'x-csrf-token': jar.get('wms_csrf') ?? '' },
+      body: form,
+    });
+    jar.absorb(response);
+    expect(response.status).toBe(415);
+
+    const traversal = await api('/api/media/..%2F..%2Fwms.db');
+    expect([400, 404]).toContain(traversal.status);
+  });
+
+  it('crée un produit avec un prix, puis le rend visible sur la boutique', async () => {
+    const response = await api('/api/admin/products', {
+      method: 'POST',
+      body: {
+        name: 'Produit de vérification automatisée',
+        shortDescription: 'Créé par la suite de tests, supprimé juste après.',
+        priceFcfa: 12500,
+        stock: 7,
+        trackStock: true,
+        isPublished: true,
+      },
+      jar,
+      csrf: true,
+    });
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    createdId = data.product.id;
+    createdSlug = data.product.slug;
+    expect(createdSlug).toBe('produit-de-verification-automatisee');
+
+    const page = await api(`/boutique/${createdSlug}`);
+    expect(page.status).toBe(200);
+    const html = await page.text();
+    expect(html).toContain('Produit de vérification automatisée');
+    expect(html.replace(/[\u202f\u00a0]/g, ' ')).toContain('12 500 FCFA');
+  });
+
+  it('commande ce produit : le prix vient du serveur et non du navigateur', async () => {
+    const response = await api('/api/orders', {
+      method: 'POST',
+      body: {
+        customerName: 'Client de vérification',
+        phone: '+226 70 55 55 55',
+        address: 'Secteur de test',
+        // Prix et total volontairement faux : le serveur doit les ignorer.
+        items: [{ productId: createdId, quantity: 2, unitPriceFcfa: 1 }],
+        totalFcfa: 2,
+        subtotalFcfa: 2,
+      },
+    });
+    expect(response.status).toBe(201);
+    const data = (await response.json()) as OrderResponse;
+    expect(data.pricePending).toBe(false);
+    expect(data.subtotalFcfa).toBe(25000);
+    expect(data.totalFcfa).toBe(25000);
+  });
+
+  it('supprime le produit créé pour la vérification', async () => {
+    const response = await api(`/api/admin/products/${createdId}`, {
+      method: 'DELETE',
+      jar,
+      csrf: true,
+    });
+    expect([200, 204]).toContain(response.status);
+
+    const page = await api(`/boutique/${createdSlug}`);
+    expect(page.status).toBe(404);
   });
 });
 
