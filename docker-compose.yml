@@ -1,0 +1,32 @@
+# Déploiement Docker — non testé dans l'environnement de développement
+# (Docker indisponible) : à valider sur votre serveur avant mise en production.
+#
+#   cp .env.example .env   # puis renseigner les valeurs
+#   docker compose up -d --build
+#
+services:
+  wms:
+    build: .
+    image: wms-boutique:latest
+    container_name: wms
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      WMS_DATA_DIR: /app/data
+    ports:
+      - '3000:3000'
+    volumes:
+      # Base SQLite + images téléversées : à sauvegarder (§4 du guide).
+      - wms-data:/app/data
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3000/api/auth/session').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  wms-data:
