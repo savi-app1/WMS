@@ -3,7 +3,8 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  output: 'standalone',
+  // Sortie serveur classique : l'application est démarrée par « next start »
+  // (systemd) ou par le conteneur Docker fourni — voir docs/DEPLOIEMENT.md.
   compress: true,
   images: {
     // Les images produits sont servies par la route /api/media (stockage local
