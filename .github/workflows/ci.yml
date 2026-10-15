@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  qualite:
+    name: Types, lint, tests et compilation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Vérifier les types (TypeScript)
+        run: npm run typecheck
+
+      - name: Analyse statique (ESLint)
+        run: npm run lint
+
+      - name: Tests (unitaires, intégration et bout en bout)
+        run: npm run test:coverage
+
+      - name: Compilation de production
+        run: npm run build
+
+      - name: Publier le rapport de couverture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: couverture-tests
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 7
