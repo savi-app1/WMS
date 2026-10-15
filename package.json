@@ -8,6 +8,7 @@
     "node": ">=22.5.0"
   },
   "scripts": {
+    "prestart": "node -e \"const f=require('fs'),c=require('child_process');if(!f.existsSync('node_modules/express')){c.execSync('npm ci --omit=dev --no-audit --no-fund',{stdio:'inherit'})}\"",
     "start": "node --no-warnings=ExperimentalWarning server.js",
     "dev": "node --no-warnings=ExperimentalWarning --watch server.js",
     "test": "node --no-warnings=ExperimentalWarning --test \"tests/*.test.js\"",

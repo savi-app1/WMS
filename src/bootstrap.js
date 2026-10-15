@@ -33,22 +33,20 @@ function ensureAdmin() {
   ensureCategories();
 
   const existing = db.get('SELECT id, email FROM admin_users WHERE id = 1');
-  if (existing) {
-    // Si un mot de passe est fourni dans l'environnement et qu'aucun hash n'existe encore
-    return existing;
+  if (existing) return existing;
+
+  // Aucun compte : création à partir de ADMIN_PASSWORD, sinon mot de passe
+  // aléatoire affiché UNE FOIS dans les journaux (jamais de mot de passe en dur).
+  let password = config.adminPassword;
+  if (!password || password.startsWith('remplacer-')) {
+    const crypto = require('crypto');
+    password = `Wms@${crypto.randomBytes(9).toString('base64url')}`;
+    console.warn('⚠️  [bootstrap] Aucun ADMIN_PASSWORD fourni.');
+    console.warn(`⚠️  [bootstrap] Mot de passe admin TEMPORAIRE généré : ${password}`);
+    console.warn('⚠️  [bootstrap] Renseignez ADMIN_PASSWORD dans .env ou changez ce mot de passe après connexion (Paramètres).');
   }
 
-  if (!config.adminPassword || config.adminPassword.startsWith('remplacer-')) {
-    if (config.isProd) {
-      console.error('[bootstrap] ADMIN_PASSWORD manquant : impossible de créer le compte administrateur.');
-      process.exit(1);
-    }
-    // En développement : mot de passe de travail local (jamais en production).
-    config.adminPassword = 'wms-dev-admin';
-    console.warn('[bootstrap] DEV : compte admin créé avec le mot de passe de développement « wms-dev-admin ».');
-  }
-
-  const hash = security.hashPassword(config.adminPassword);
+  const hash = security.hashPassword(password);
   db.run('INSERT INTO admin_users (id, email, password_hash) VALUES (1, ?, ?)', [config.adminEmail, hash]);
   security.audit('admin_created', 'admin_users', 1, `Compte administrateur ${config.adminEmail} créé.`);
   console.log(`[bootstrap] Compte administrateur créé : ${config.adminEmail}`);

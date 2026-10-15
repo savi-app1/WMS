@@ -65,11 +65,16 @@ const config = {
 /** Valide la configuration critique au démarrage. */
 function assertConfig() {
   const problems = [];
+  let sessionSecretWarning = false;
   if (!config.sessionSecret || config.sessionSecret.length < 32) {
-    problems.push('SESSION_SECRET manquant ou trop court (>= 32 caractères).');
+    // Secret aléatoire de secours : démarre, mais les sessions seront
+    // invalidées à chaque redémarrage. Avertir fortement.
+    const crypto = require('crypto');
+    config.sessionSecret = crypto.randomBytes(32).toString('hex');
+    sessionSecretWarning = true;
   }
-  if (config.isProd && !config.adminPassword && !fs.existsSync(path.join(ROOT, 'data', 'wms.sqlite'))) {
-    problems.push('ADMIN_PASSWORD requis au premier démarrage en production.');
+  if (sessionSecretWarning) {
+    console.warn('⚠️  [config] SESSION_SECRET manquant : secret temporaire généré (sessions invalidées à chaque redémarrage). Renseignez-le dans .env.');
   }
   if (problems.length) {
     for (const p of problems) console.error('[config] ERREUR:', p);

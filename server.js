@@ -24,6 +24,18 @@ const cleanupTimer = setInterval(() => {
 }, 60 * 60 * 1000);
 cleanupTimer.unref();
 
+// Sauvegarde automatique de la base toutes les 6 heures (dossier data/backups)
+const backupTimer = setInterval(() => {
+  try {
+    const path = require('path');
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    db.backupTo(path.join(config.root, 'data', 'backups', `wms-${stamp}.sqlite`));
+  } catch (err) {
+    console.error('[wms] échec sauvegarde planifiée :', err.message);
+  }
+}, 6 * 60 * 60 * 1000);
+backupTimer.unref();
+
 process.on('SIGTERM', () => {
   clearInterval(cleanupTimer);
   server.close(() => process.exit(0));
