@@ -48,7 +48,12 @@ const config = {
   env: process.env.NODE_ENV || 'development',
   isProd: (process.env.NODE_ENV || 'development') === 'production',
   port: Number(process.env.PORT || 3000),
-  publicUrl: (process.env.PUBLIC_URL || '').replace(/\/+$/, ''),
+  // URL publique : env, sinon détection automatique de l'hôte de prévisualisation
+  // (survit aux recréations de l'environnement, au lieu d'un lien mort en dur).
+  publicUrl: (process.env.PUBLIC_URL
+    || (process.env.E2B_SANDBOX_ID
+      ? `https://${Number(process.env.PORT || 3000)}-${process.env.E2B_SANDBOX_ID}.e2b.app`
+      : '')).replace(/\/+$/, ''),
   sessionSecret: process.env.SESSION_SECRET || '',
   databasePath: process.env.DATABASE_PATH || 'data/wms.sqlite',
   adminEmail: (process.env.ADMIN_EMAIL || 'admin@wms.bf').toLowerCase(),
