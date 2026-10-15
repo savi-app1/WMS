@@ -1,0 +1,119 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken }) %>
+<main class="admin-main" style="max-width:860px">
+
+  <div class="page-head">
+    <div>
+      <a href="/admin/campagnes" class="muted">← Campagnes</a>
+      <h1 style="margin-top:4px"><%= campaign && campaign.id ? 'Modifier : ' + campaign.name : 'Nouvelle campagne' %></h1>
+    </div>
+  </div>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (typeof ok !== 'undefined' && ok) { %><div class="alert alert-success">Campagne enregistrée.</div><% } %>
+
+  <form method="post" action="<%= campaign && campaign.id ? '/admin/campagnes/' + campaign.id : '/admin/campagnes' %>">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="panel" style="margin-top:0">
+      <h3>Identité de la campagne</h3>
+      <div class="grid-form">
+        <div class="form-row full">
+          <label for="name">Nom de campagne <span style="color:var(--red)">*</span></label>
+          <input type="text" id="name" name="name" maxlength="150" required value="<%= campaign ? campaign.name : '' %>" placeholder="Ex. : Promo smartphones — octobre 2026">
+        </div>
+        <div class="form-row">
+          <label for="objective">Objectif</label>
+          <input type="text" id="objective" name="objective" maxlength="300" value="<%= campaign ? campaign.objective : '' %>" placeholder="Ex. : Générer 30 commandes WhatsApp">
+        </div>
+        <div class="form-row">
+          <label for="product_service">Produit ou service</label>
+          <input type="text" id="product_service" name="product_service" maxlength="150" value="<%= campaign ? campaign.product_service : '' %>" placeholder="Ex. : Smartphones entrée de gamme">
+        </div>
+        <div class="form-row">
+          <label for="platform">Plateforme cible</label>
+          <input type="text" id="platform" name="platform" maxlength="100" value="<%= campaign ? campaign.platform : '' %>" placeholder="Ex. : Facebook Ads, TikTok Ads, WhatsApp">
+          <div class="help">Préparation uniquement : la publication reste manuelle sur la plateforme choisie.</div>
+        </div>
+        <div class="form-row">
+          <label for="status">Statut</label>
+          <select id="status" name="status">
+            <option value="brouillon" <%= !campaign || campaign.status === 'brouillon' ? 'selected' : '' %>>Brouillon</option>
+            <option value="pret" <%= campaign && campaign.status === 'pret' ? 'selected' : '' %>>Prêt</option>
+            <option value="en_cours" <%= campaign && campaign.status === 'en_cours' ? 'selected' : '' %>>En cours</option>
+            <option value="termine" <%= campaign && campaign.status === 'termine' ? 'selected' : '' %>>Terminé</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Contenus</h3>
+      <div class="grid-form">
+        <div class="form-row full">
+          <label for="ad_text">Texte publicitaire</label>
+          <textarea id="ad_text" name="ad_text" maxlength="10000" style="min-height:120px" placeholder="Texte de publication / annonce à diffuser…"><%= campaign ? campaign.ad_text : '' %></textarea>
+        </div>
+        <div class="form-row full">
+          <label for="script_id">Script vidéo / voix off associé</label>
+          <select id="script_id" name="script_id">
+            <option value="">— Aucun —</option>
+            <% scripts.forEach(function (s) { %>
+              <option value="<%= s.id %>" <%= campaign && campaign.script_id === s.id ? 'selected' : '' %>><%= s.title %> (<%= s.type %>)</option>
+            <% }) %>
+          </select>
+          <div class="help">Sélectionnez un contenu de la bibliothèque « Scripts ». <a href="/admin/scripts/nouveau" target="_blank">Créer un script</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Tracking &amp; budget</h3>
+      <div class="grid-form">
+        <div class="form-row full">
+          <label for="product_link">Lien vers la fiche produit</label>
+          <input type="text" id="product_link" name="product_link" maxlength="300" value="<%= campaign ? campaign.product_link : '' %>" placeholder="https://…/produit/…">
+          <div class="help">Copiez-collez le lien complet de la fiche publique.</div>
+        </div>
+        <div class="form-row full">
+          <label for="utm_string">Paramètres UTM</label>
+          <input type="text" id="utm_string" name="utm_string" maxlength="300" value="<%= campaign ? campaign.utm_string : '' %>" placeholder="utm_source=facebook&utm_medium=paid&utm_campaign=promo_octobre" oninput="document.getElementById('utmPreview').textContent = this.value ? ( this.value.startsWith('?') ? this.value : '?' + this.value ) : '';">
+          <div class="help">Distingue les visites par campagne dans Statistiques → Sources UTM. Lien complet à utiliser : <span id="utmPreviewWrapper"><code class="muted"><%= campaign && campaign.product_link ? campaign.product_link : '(fiche produit)' %><span id="utmPreview"><%= campaign && campaign.utm_string ? '?' + campaign.utm_string : '' %></span></code></span></div>
+        </div>
+        <div class="form-row">
+          <label for="budget_fcfa">Budget prévu (FCFA)</label>
+          <input type="number" id="budget_fcfa" name="budget_fcfa" min="0" inputmode="numeric" value="<%= campaign && campaign.budget_fcfa != null ? campaign.budget_fcfa : '' %>" placeholder="Ex. : 10000">
+        </div>
+        <div class="form-row">
+          <label for="start_date">Début</label>
+          <input type="date" id="start_date" name="start_date" value="<%= campaign ? campaign.start_date : '' %>">
+        </div>
+        <div class="form-row">
+          <label for="end_date">Fin</label>
+          <input type="date" id="end_date" name="end_date" value="<%= campaign ? campaign.end_date : '' %>">
+        </div>
+        <div class="form-row">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" maxlength="2000" style="min-height:70px" placeholder="Ciblage, variantes à tester, résultats plateforme…"><%= campaign ? campaign.notes : '' %></textarea>
+        </div>
+      </div>
+      <div class="flex">
+        <button class="btn btn-red" type="submit">Enregistrer la campagne</button>
+        <a class="btn btn-ghost" href="/admin/campagnes">Annuler</a>
+      </div>
+    </div>
+  </form>
+
+  <div class="alert alert-info">
+    Rappel : aucune annonce n'est publiée depuis l'application, aucun budget n'est dépensé et les pages Facebook/TikTok existantes ne sont pas connectées. Lancement uniquement manuel après vérification.
+  </div>
+
+  <% if (campaign && campaign.id) { %>
+    <form method="post" action="/admin/campagnes/<%= campaign.id %>/supprimer" onsubmit="return confirm('Supprimer cette campagne ?')">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn btn-ghost" style="color:var(--red-dark);border-color:var(--red)">Supprimer cette campagne</button>
+    </form>
+  <% } %>
+</main>
+</body>
+</html>

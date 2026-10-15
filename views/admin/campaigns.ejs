@@ -1,0 +1,47 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken }) %>
+<main class="admin-main">
+
+  <div class="page-head">
+    <h1>Campagnes publicitaires <span class="muted" style="font-weight:600">(<%= campaigns.length %>)</span></h1>
+    <a class="btn btn-red btn-sm" href="/admin/campagnes/nouvelle">+ Nouvelle campagne</a>
+  </div>
+
+  <div class="alert alert-info">
+    Préparation et sauvegarde uniquement : aucune publication automatique. Aucun budget n'est dépensé depuis l'application. Vérifiez chaque campagne avant diffusion manuelle sur la plateforme publicitaire choisie.
+  </div>
+
+  <% if (campaigns.length === 0) { %>
+    <div class="panel" style="text-align:center;padding:40px 16px">
+      <div style="font-size:17px;font-weight:800;margin-bottom:6px">Aucune campagne</div>
+      <p class="muted">Préparez ici vos campagnes : objectif, texte, script, plateforme cible, UTM, budget et dates.</p>
+      <a class="btn btn-red" href="/admin/campagnes/nouvelle">Créer la première campagne</a>
+    </div>
+  <% } else { %>
+    <% campaigns.forEach(function (c) { %>
+      <a class="order-card" href="/admin/campagnes/<%= c.id %>">
+        <div class="row1">
+          <span class="num"><%= c.name %></span>
+          <span class="st <%= c.status === 'pret' ? 'st-confirmee' : c.status === 'en_cours' ? 'st-en_livraison' : c.status === 'termine' ? 'st-livree' : 'st-a_confirmer' %>"><%= statusLabels[c.status] %></span>
+        </div>
+        <div class="cust">
+          <% if (c.objective) { %><strong>Objectif&nbsp;:</strong> <%= c.objective %><% } %>
+          <% if (c.platform) { %> · <strong>Plateforme&nbsp;:</strong> <%= c.platform %><% } %>
+          <% if (c.product_service) { %> · <strong>Produit&nbsp;:</strong> <%= c.product_service %><% } %>
+        </div>
+        <div class="row3">
+          <span class="items">
+            <% if (c.budget_fcfa != null) { %>Budget prévu : <%= c.budget_fcfa.toLocaleString('fr-FR') %> FCFA<% } else { %>Budget non défini<% } %>
+            <% if (c.start_date || c.end_date) { %> · <%= c.start_date || '?' %> → <%= c.end_date || '?' %><% } %>
+          </span>
+          <span class="when">Modifiée le <%= new Date(c.updated_at).toLocaleDateString('fr-FR', { dateStyle: 'medium' }) %></span>
+        </div>
+        <% if (c.utm_string) { %><div class="items"><strong>Lien UTM&nbsp;:</strong> <span class="muted"><%= c.utm_string %></span></div><% } %>
+      </a>
+    <% }) %>
+  <% } %>
+
+  <p class="footer-admin">Les statistiques publicitaires (CTR, portée) se consultent sur les plateformes publicitaires — cette espace sert à préparer les contenus.</p>
+</main>
+</body>
+</html>

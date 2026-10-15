@@ -1,0 +1,73 @@
+<%- include('_head', { title, meta, nonce, config, currentPath, year }) %>
+<%- include('_header', { currentPath, nonce, config }) %>
+
+<main class="container" style="max-width:760px;padding:34px 16px">
+  <% if (!order) { %>
+    <div class="empty-state">
+      <div class="big">Merci !</div>
+      <p>Votre demande a bien été transmise (aucune commande publique à afficher).</p>
+    </div>
+  <% } else { %>
+    <div class="panel" style="text-align:center;padding:26px 18px">
+      <div style="width:58px;height:58px;border-radius:50%;background:#e6f6ec;margin:0 auto 12px;display:flex;align-items:center;justify-content:center">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1e9e50" stroke-width="2.2" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h1 style="font-size:22px;margin:0 0 6px">Commande enregistrée</h1>
+      <p class="muted" style="margin:0 0 4px">Votre numéro de commande est :</p>
+      <div style="font-size:24px;font-weight:800;letter-spacing:.5px;color:var(--red)"><%= order.order_number %></div>
+      <p class="muted" style="margin:8px 0 0">Conservez ce numéro pour suivre votre commande.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Récapitulatif</h3>
+      <table class="char-table">
+        <% order.items.forEach(function (i) { %>
+          <tr>
+            <td><%= i.product_name %> <span class="muted">×<%= i.quantity %></span></td>
+            <td style="text-align:right">
+              <% if (i.line_total != null) { %><%= formatFcfa(i.line_total) %>
+              <% } else { %><span class="to-confirm">à confirmer</span><% } %>
+            </td>
+          </tr>
+        <% }) %>
+        <tr>
+          <td>Frais de livraison</td>
+          <td style="text-align:right">
+            <% if (order.delivery_fee_fcfa != null) { %><%= formatFcfa(order.delivery_fee_fcfa) %>
+            <% } else { %><span class="to-confirm">à confirmer</span><% } %>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td style="text-align:right">
+            <% if (order.amount_ordered != null) { %>
+              <strong><%= formatFcfa(order.amount_ordered) %></strong>
+            <% } else { %>
+              <span class="to-confirm"><strong>Montant à confirmer par téléphone</strong></span>
+            <% } %>
+          </td>
+        </tr>
+      </table>
+      <p class="notice" style="margin-top:12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-5M12 8h.01"/></svg>
+        Mode de paiement : <strong>à la livraison</strong>. WMS vous contactera au <strong><%= order.customer_phone_raw %></strong> pour confirmer la disponibilité et organiser la livraison.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h3>Prochaines étapes</h3>
+      <ol style="margin:0;padding-left:20px;font-size:15px;display:grid;gap:8px">
+        <li>WMS vous appelle ou vous contacte sur WhatsApp pour <strong>confirmer</strong> votre commande.</li>
+        <li>Préparation et mise à disposition du produit.</li>
+        <li>Livraison à l'adresse indiquée et <strong>paiement à la réception</strong>.</li>
+      </ol>
+      <div class="flex" style="margin-top:14px">
+        <a class="btn btn-green" href="<%= waLink %>" target="_blank" rel="noopener" id="waConfirm">Confirmer sur WhatsApp</a>
+        <a class="btn btn-ghost" href="/suivi/<%= encodeURIComponent(order.order_number) %>">Suivre ma commande</a>
+        <a class="btn btn-ghost" href="/produits">Continuer mes achats</a>
+      </div>
+    </div>
+  <% } %>
+</main>
+
+<%- include('_footer', { config, year, nonce, currentPath }) %>

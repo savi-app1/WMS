@@ -1,0 +1,15 @@
+<%- include('_head', { title: title || 'Erreur — WMS', meta: meta || { description: 'Erreur interne.' }, nonce, config, currentPath, year }) %>
+<%- include('_header', { currentPath, nonce, config }) %>
+
+<main class="container" style="max-width:760px;padding:50px 16px">
+  <div class="empty-state">
+    <div class="big">Une erreur est survenue</div>
+    <p><%= typeof error !== 'undefined' && error ? error : 'Veuillez réessayer dans quelques instants.' %></p>
+    <div class="flex" style="justify-content:center">
+      <a class="btn btn-red" href="/">Retour à l'accueil</a>
+      <a class="btn btn-green" href="https://wa.me/<%= config.whatsappNumber %>" target="_blank" rel="noopener">Signaler sur WhatsApp</a>
+    </div>
+  </div>
+</main>
+
+<%- include('_footer', { config, year, nonce, currentPath }) %>

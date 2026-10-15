@@ -1,0 +1,53 @@
+<%- include('_head', { title, meta, nonce, config, currentPath, year }) %>
+<%- include('_header', { currentPath, nonce, config }) %>
+
+<main class="container" style="padding-top:22px">
+  <nav class="breadcrumb" aria-label="Fil d’Ariane">
+    <a href="/">Accueil</a> <span aria-hidden="true">/</span>
+    <% if (q) { %><span>Recherche : « <%= q %> »</span>
+    <% } else if (category) { %><span>Catégorie</span>
+    <% } else { %><span>Tous les produits</span><% } %>
+  </nav>
+
+  <div class="section">
+    <h1 style="font-size:clamp(21px,4vw,27px);margin:10px 0 14px">
+      <% if (q) { %>Résultats pour « <%= q %> »
+      <% } else if (category) { %>
+        <%= (categories.find(function (c) { return c.slug === category }) || {}).name || 'Catégorie' %>
+      <% } else { %>Nos produits et services<% } %>
+    </h1>
+
+    <form class="searchbar" action="/produits" method="get" role="search" style="margin:0 0 18px;max-width:none">
+      <% if (category) { %><input type="hidden" name="categorie" value="<%= category %>"><% } %>
+      <input type="search" name="q" value="<%= q %>" placeholder="Rechercher…" aria-label="Rechercher">
+      <button type="submit">Rechercher</button>
+    </form>
+
+    <div class="cat-grid" style="margin-bottom:20px">
+      <a class="cat-card <%= !category ? 'active' : '' %>" href="/produits<%= q ? '?q=' + encodeURIComponent(q) : '' %>" style="padding:11px 10px;font-size:12.5px">
+        <span>Toutes les catégories</span>
+      </a>
+      <% categories.forEach(function (c) { %>
+        <a class="cat-card <%= category === c.slug ? 'active' : '' %>" href="/produits?categorie=<%= encodeURIComponent(c.slug) %><%= q ? '&q=' + encodeURIComponent(q) : '' %>" style="padding:11px 10px;font-size:12.5px">
+          <span><%= c.name %></span>
+        </a>
+      <% }) %>
+    </div>
+
+    <% if (products.length === 0) { %>
+      <div class="empty-state">
+        <div class="big">Aucun produit trouvé</div>
+        <% if (q) { %><p>Aucun résultat pour « <%= q %> ». Essayez un autre mot-clé ou <a href="/produits">parcourez tout le catalogue</a>.</p>
+        <% } else { %><p>Les produits de cette catégorie arrivent bientôt.<br>Demandez l’information sur <a href="https://wa.me/<%= config.whatsappNumber %>" target="_blank" rel="noopener">WhatsApp</a>.</p><% } %>
+      </div>
+    <% } else { %>
+      <div class="grid">
+        <% products.forEach(function (p) { %>
+          <%- include('_product-card', { p, formatFcfa }) %>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</main>
+
+<%- include('_footer', { config, year, nonce, currentPath }) %>

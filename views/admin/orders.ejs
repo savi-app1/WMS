@@ -1,0 +1,73 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken, counts }) %>
+<main class="admin-main">
+
+  <div class="page-head">
+    <h1>Commandes <span class="muted" style="font-weight:600">(<%= total %>)</span></h1>
+    <div class="flex">
+      <a class="btn btn-ghost btn-sm" href="/admin/commandes/export.csv?statut=<%= status %><%= demoFilter !== 'hide' ? '&demo=' + demoFilter : '' %>">Exporter CSV</a>
+      <% if (demoFilter === 'hide') { %>
+        <a class="btn btn-ghost btn-sm" href="/admin/commandes?demo=show">Voir les données de test</a>
+      <% } else if (demoFilter === 'show') { %>
+        <a class="btn btn-ghost btn-sm" href="/admin/commandes">Masquer le test</a>
+      <% } %>
+    </div>
+  </div>
+
+  <form class="searchline" method="get" action="/admin/commandes">
+    <% if (status) { %><input type="hidden" name="statut" value="<%= status %>"><% } %>
+    <input type="search" name="q" value="<%= q %>" placeholder="Recherche : client, téléphone, numéro…" aria-label="Rechercher une commande">
+    <button type="submit" class="btn-red">Rechercher</button>
+    <% if (q || status || demoFilter !== 'hide') { %><a class="btn btn-ghost" style="align-self:center" href="/admin/commandes">Réinitialiser</a><% } %>
+  </form>
+
+  <div class="filters" role="tablist" aria-label="Filtrer par statut">
+    <a class="chip <%= !status ? 'active' : '' %>" href="/admin/commandes<%= demoFilter !== 'hide' ? '?demo=' + demoFilter : '' %>">Tout <span class="count"><%= counts.total %></span></a>
+    <% statusList.forEach(function (s) { %>
+      <a class="chip <%= status === s ? 'active' : '' %>" href="/admin/commandes?statut=<%= s %><%= demoFilter !== 'hide' ? '&demo=' + demoFilter : '' %>">
+        <%= statusLabels[s] %> <span class="count"><%= counts[s] %></span>
+      </a>
+    <% }) %>
+  </div>
+
+  <% if (rows.length === 0) { %>
+    <div class="panel" style="text-align:center;padding:40px 16px">
+      <div style="font-size:17px;font-weight:800;margin-bottom:6px">Aucune commande</div>
+      <p class="muted">Les commandes passées sur la boutique apparaissent instantanément ici, sans action de votre part.</p>
+    </div>
+  <% } else { %>
+    <% rows.forEach(function (o) { %>
+      <a class="order-card" href="/admin/commandes/<%= o.id %>">
+        <div class="row1">
+          <span class="num"><%= o.order_number %></span>
+          <span class="st st-<%= o.status %>"><%= statusLabels[o.status] %></span>
+        </div>
+        <div class="cust"><strong><%= o.customer_name %></strong> · <%= o.customer_phone_raw %></div>
+        <div class="items"><%= o.item_count %> article(s)<% if (o.customer_address) { %> · <%= o.customer_address %><% } %></div>
+        <div class="row3">
+          <span class="amount">
+            <% if (o.amount_ordered != null) { %><%= formatFcfa(o.amount_ordered) %>
+            <% } else { %>Montant à confirmer<% } %>
+          </span>
+          <span class="when"><%= new Date(o.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) %></span>
+        </div>
+      </a>
+    <% }) %>
+
+    <% if (pages > 1) { %>
+      <div class="flex" style="justify-content:center;margin-top:16px">
+        <% if (page > 1) { %>
+          <a class="btn btn-ghost btn-sm" href="/admin/commandes?page=<%= page - 1 %><%= status ? '&statut=' + status : '' %><%= q ? '&q=' + encodeURIComponent(q) : '' %><%= demoFilter !== 'hide' ? '&demo=' + demoFilter : '' %>">← Précédent</a>
+        <% } %>
+        <span class="muted" style="align-self:center">Page <%= page %> / <%= pages %></span>
+        <% if (page < pages) { %>
+          <a class="btn btn-ghost btn-sm" href="/admin/commandes?page=<%= page + 1 %><%= status ? '&statut=' + status : '' %><%= q ? '&q=' + encodeURIComponent(q) : '' %><%= demoFilter !== 'hide' ? '&demo=' + demoFilter : '' %>">Suivant →</a>
+        <% } %>
+      </div>
+    <% } %>
+  <% } %>
+
+  <p class="footer-admin">Tri : plus récentes en premier · action rapide sur téléphone.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<%- include('_head', { title, meta, nonce, config, currentPath, year }) %>
+<%- include('_header', { currentPath, nonce, config }) %>
+
+<main class="container" style="max-width:760px;padding:34px 16px">
+  <div class="panel">
+    <h1 style="font-size:21px;margin:0 0 10px">Suivre ma commande</h1>
+    <p class="muted" style="margin:0 0 14px">Entrez le numéro de commande reçu lors de l'enregistrement (format <code>WMS-XXXXXX-XXXX</code>).</p>
+    <form method="get" action="/suivi" onsubmit="event.preventDefault();var v=this.n.value.trim();if(v)location.href='/suivi/'+encodeURIComponent(v.toUpperCase())">
+      <div class="form-row">
+        <label for="orderNumber" class="visually-hidden">Numéro de commande</label>
+        <input type="text" id="orderNumber" name="n" placeholder="Ex. : WMS-260915-1234" required maxlength="30" style="text-transform:uppercase">
+      </div>
+      <button type="submit" class="btn btn-red btn-block">Rechercher</button>
+    </form>
+  </div>
+
+  <% if (notFound) { %>
+    <div class="alert alert-error" style="margin-top:14px">
+      Commande introuvable. Vérifiez le numéro (sans espaces) ou contactez-nous sur
+      <a href="https://wa.me/<%= config.whatsappNumber %>" target="_blank" rel="noopener">WhatsApp</a>.
+    </div>
+  <% } %>
+
+  <% if (order) { %>
+    <div class="panel">
+      <div class="between">
+        <div>
+          <div class="muted">Commande</div>
+          <div style="font-weight:800;font-size:19px"><%= order.order_number %></div>
+        </div>
+        <span class="st st-<%= order.status %>"><%= order.status.replace(/_/g, ' ') %></span>
+      </div>
+      <div class="muted" style="margin-top:4px">Passée le <%= new Date(order.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></div>
+
+      <h3 style="margin:16px 0 8px">Contenu</h3>
+      <table class="char-table">
+        <% order.items.forEach(function (i) { %>
+          <tr><td><%= i.product_name %> ×<%= i.quantity %></td>
+          <td style="text-align:right"><% if (i.line_total != null) { %><%= formatFcfa(i.line_total) %><% } else { %>à confirmer<% } %></td></tr>
+        <% }) %>
+      </table>
+
+      <h3 style="margin:16px 0 8px">Suivi</h3>
+      <ol class="steps">
+        <li class="done">
+          <span class="dot2">✓</span>
+          <div><div class="step-label">Commande enregistrée</div>
+          <div class="step-date"><%= new Date(order.history[0].created_at).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) %></div></div>
+        </li>
+        <% if (order.status === 'annulee') { %>
+          <li class="cancelled">
+            <span class="dot2">✕</span>
+            <div><div class="step-label">Commande annulée</div>
+            <div class="step-date"><%= order.cancelled_at ? new Date(order.cancelled_at).toLocaleDateString('fr-FR', { dateStyle: 'medium' }) : '' %></div></div>
+          </li>
+        <% } else { %>
+          <li class="<%= ['a_confirmer','confirmee','en_preparation','en_livraison','livree'].includes(order.status) ? 'done' : '' %>">
+            <span class="dot2">2</span>
+            <div><div class="step-label">Confirmée par WMS</div>
+            <div class="step-date"><% if (order.confirmed_at) { %><%= new Date(order.confirmed_at).toLocaleDateString('fr-FR', { dateStyle: 'medium' }) %><% } else { %>En attente de confirmation<% } %></div></div>
+          </li>
+          <li class="<%= ['en_preparation','en_livraison','livree'].includes(order.status) ? 'done' : '' %>">
+            <span class="dot2">3</span>
+            <div><div class="step-label">En préparation</div></div>
+          </li>
+          <li class="<%= ['en_livraison','livree'].includes(order.status) ? 'done' : '' %>">
+            <span class="dot2">4</span>
+            <div><div class="step-label">En livraison</div></div>
+          </li>
+          <li class="<%= order.status === 'livree' ? 'done' : '' %>">
+            <span class="dot2">5</span>
+            <div><div class="step-label">Livrée</div>
+            <div class="step-date"><% if (order.delivered_at) { %><%= new Date(order.delivered_at).toLocaleDateString('fr-FR', { dateStyle: 'medium' }) %><% } %></div></div>
+          </li>
+        <% } %>
+      </ol>
+
+      <p class="notice" style="margin-top:12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3 7.6-7 9-4-1.4-7-4.4-7-9V6z"/></svg>
+        Protection des données : vos coordonnées ne sont jamais affichées en clair sur le suivi public. Paiement à la livraison.
+      </p>
+
+      <div class="flex" style="margin-top:14px">
+        <a class="btn btn-green" href="https://wa.me/<%= config.whatsappNumber %>?text=<%= encodeURIComponent('Bonjour WMS, je souhaite le suivi de ma commande ' + order.order_number + '.') %>" target="_blank" rel="noopener">Écrire à WMS sur WhatsApp</a>
+        <a class="btn btn-ghost" href="/">Retour à l'accueil</a>
+      </div>
+    </div>
+  <% } %>
+</main>
+
+<%- include('_footer', { config, year, nonce, currentPath }) %>

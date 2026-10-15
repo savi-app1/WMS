@@ -1,0 +1,19 @@
+<%- include('_head', { title, meta, nonce, config, currentPath, year }) %>
+<%- include('_header', { currentPath, nonce, config }) %>
+
+<main class="container" style="max-width:760px;padding:30px 16px">
+  <nav class="breadcrumb"><a href="/">Accueil</a> <span aria-hidden="true">/</span> <span>Confidentialité</span></nav>
+  <div class="panel" style="margin-top:16px">
+    <h1 style="font-size:22px;margin:0 0 14px">Politique de confidentialité</h1>
+    <div class="product-desc" style="font-size:14.5px">
+      <p><strong>1. Données collectées.</strong> Lorsque vous passez commande sur le site WMS, nous recueillons uniquement les informations nécessaires : votre nom, votre numéro de téléphone et votre adresse de livraison, ainsi que le contenu de votre commande. Aucun compte client n'est requis.</p>
+      <p><strong>2. Utilisation.</strong> Ces données servent exclusivement à traiter votre commande, à vous contacter pour confirmer la disponibilité et à organiser la livraison. Elles ne sont ni vendues ni transmises à des tiers à des fins commerciales.</p>
+      <p><strong>3. Accès.</strong> Seul l'administrateur WMS accède aux coordonnées des clients, dans un espace privé sécurisé. Le suivi public des commandes masque toute information personnelle.</p>
+      <p><strong>4. Cookies.</strong> Le site utilise uniquement des cookies techniques nécessaires à son fonctionnement (sécurité du formulaire) ainsi que, le cas échéant, des statistiques de mesure d'audience si elles sont configurées par le propriétaire. Aucune donnée de paiement n'est stockée : le paiement s'effectue à la livraison.</p>
+      <p><strong>5. Conservation.</strong> Les informations de commande sont conservées pour le suivi commercial et la comptabilité. Vous pouvez demander la suppression de vos coordonnées de contact après livraison en nous écrivant sur WhatsApp.</p>
+      <p><strong>6. Contact.</strong> Pour toute question sur vos données, contactez-nous via <a href="https://wa.me/<%= config.whatsappNumber %>" target="_blank" rel="noopener">WhatsApp</a> ou sur la page <a href="/contact">Contact</a>.</p>
+    </div>
+  </div>
+</main>
+
+<%- include('_footer', { config, year, nonce, currentPath }) %>

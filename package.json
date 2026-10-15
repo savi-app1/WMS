@@ -1,0 +1,27 @@
+{
+  "name": "wms-ecommerce",
+  "version": "1.0.0",
+  "description": "Wendmanegda Multiples Services (WMS) — Boutique en ligne, gestion des commandes et administration. Ouagadougou, Burkina Faso.",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node --no-warnings=ExperimentalWarning server.js",
+    "dev": "node --no-warnings=ExperimentalWarning --watch server.js",
+    "test": "node --no-warnings=ExperimentalWarning --test \"tests/*.test.js\"",
+    "seed": "node --no-warnings=ExperimentalWarning scripts/seed.js",
+    "backup": "node --no-warnings=ExperimentalWarning scripts/backup.js",
+    "lint": "node scripts/lint.js"
+  },
+  "dependencies": {
+    "compression": "^1.7.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "multer": "^2.4.0"
+  },
+  "license": "UNLICENSED"
+}

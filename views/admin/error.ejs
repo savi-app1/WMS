@@ -1,0 +1,13 @@
+<%- include('_head', { title: title || 'Erreur', config }) %>
+<main class="admin-main" style="max-width:620px;margin-top:40px">
+  <div class="panel" style="text-align:center;padding:40px 20px">
+    <div style="font-size:17px;font-weight:800;margin-bottom:8px"><%= title || 'Erreur' %></div>
+    <p class="muted"><%= error || 'Une erreur est survenue.' %></p>
+    <div class="flex" style="justify-content:center;margin-top:14px">
+      <a class="btn btn-red" href="/admin">Tableau de bord</a>
+      <a class="btn btn-ghost" href="javascript:history.back()">Retour</a>
+    </div>
+  </div>
+</main>
+</body>
+</html>

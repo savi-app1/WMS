@@ -1,0 +1,133 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken, counts }) %>
+<main class="admin-main">
+
+  <div class="page-head">
+    <h1>Tableau de bord</h1>
+    <div class="flex">
+      <% if (!demoMode) { %>
+        <a class="btn btn-ghost btn-sm" href="/admin?demo=show">Afficher les données de test</a>
+      <% } else { %>
+        <span class="badge badge-red">Mode test visible</span>
+        <a class="btn btn-ghost btn-sm" href="/admin">Masquer le test</a>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (typeof notice !== 'undefined' && notice === 'purged') { %>
+    <div class="alert alert-success">Données de démonstration supprimées avec succès.</div>
+  <% } %>
+
+  <!-- Compteurs principaux -->
+  <div class="counters">
+    <a class="counter c-nouvelle" href="/admin/commandes?statut=nouvelle<%= demoMode ? '&demo=show' : '' %>">
+      <span class="n"><%= counts.nouvelle %></span><span class="l">Nouvelles commandes</span>
+    </a>
+    <a class="counter c-a_confirmer" href="/admin/commandes?statut=a_confirmer<%= demoMode ? '&demo=show' : '' %>">
+      <span class="n"><%= counts.a_confirmer %></span><span class="l">À confirmer</span>
+    </a>
+    <a class="counter c-confirmee" href="/admin/commandes?statut=confirmee<%= demoMode ? '&demo=show' : '' %>">
+      <span class="n"><%= counts.confirmee %></span><span class="l">Confirmées</span>
+    </a>
+    <a class="counter c-en_preparation" href="/admin/commandes?statut=en_preparation<%= demoMode ? '&demo=show' : '' %>">
+      <span class="n"><%= counts.en_preparation %></span><span class="l">En préparation</span>
+    </a>
+    <a class="counter c-en_livraison" href="/admin/commandes?statut=en_livraison<%= demoMode ? '&demo=show' : '' %>">
+      <span class="n"><%= counts.en_livraison %></span><span class="l">En livraison</span>
+    </a>
+    <a class="counter c-livree" href="/admin/commandes?statut=livree<%= demoMode ? '&demo=show' : '' %>">
+      <span class="n"><%= counts.livree %></span><span class="l">Livrées (mois : <%= month.totals.delivered_count || 0 %>)</span>
+    </a>
+  </div>
+  <div class="counters" style="margin-top:10px">
+    <a class="counter c-total" href="/admin/commandes<%= demoMode ? '?demo=show' : '' %>">
+      <span class="n"><%= counts.total %></span><span class="l">Total commandes</span>
+    </a>
+    <div class="counter" style="cursor:default">
+      <span class="n"><%= todayCount %></span><span class="l">Reçues aujourd'hui</span>
+    </div>
+    <a class="counter" href="/admin/statistiques">
+      <span class="n"><%= month.totals.amount_ordered != null ? (month.totals.amount_ordered / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' k' : '—' %></span>
+      <span class="l">Valeur commandée ce mois (FCFA)</span>
+    </a>
+    <a class="counter" href="/admin/statistiques">
+      <span class="n"><%= month.totals.amount_cashed != null ? (month.totals.amount_cashed / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' k' : '—' %></span>
+      <span class="l">Réellement encaissé ce mois (FCFA)</span>
+    </a>
+  </div>
+
+  <!-- Rappels internes -->
+  <% if (stale.length) { %>
+    <div class="panel" style="border-left:4px solid var(--amber)">
+      <h2>⏰ Rappels internes — commandes en attente > 24 h</h2>
+      <p class="muted">Ces commandes n'ont pas encore été confirmées : à traiter en priorité pour ne pas perdre de client.</p>
+      <% stale.slice(0, 5).forEach(function (o) { %>
+        <a class="order-card" href="/admin/commandes/<%= o.id %>">
+          <div class="row1"><span class="num"><%= o.order_number %></span><span class="badge badge-red"><%= o.status.replace(/_/g, ' ') %></span></div>
+          <div class="cust"><%= o.customer_name %> — <%= o.customer_phone_raw %></div>
+          <div class="when"><%= new Date(o.created_at).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) %></div>
+        </a>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (lowStock.length) { %>
+    <div class="panel" style="border-left:4px solid var(--red)">
+      <h2>📦 Alertes de stock faible</h2>
+      <ul style="margin:0;padding-left:19px">
+        <% lowStock.forEach(function (p) { %>
+          <li><a href="/admin/produits/<%= p.id %>"><strong><%= p.name %></strong></a> — stock restant : <strong><%= p.stock_qty %></strong></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <div class="grid-2">
+    <div class="panel">
+      <h2>Commandes récentes</h2>
+      <% if (recent.length === 0) { %>
+        <p class="muted">Aucune commande pour l'instant. Les commandes passées sur le site apparaissent instantanément ici.</p>
+        <a class="btn btn-red btn-block" href="/admin/produits/nouveau">Configurer les produits</a>
+      <% } else { %>
+        <% recent.forEach(function (o) { %>
+          <a class="order-card" href="/admin/commandes/<%= o.id %>">
+            <div class="row1">
+              <span class="num"><%= o.order_number %></span>
+              <span class="st st-<%= o.status %>"><%= statusLabels[o.status] %></span>
+            </div>
+            <div class="cust"><%= o.customer_name %> · <%= o.customer_phone_raw %></div>
+            <div class="row3">
+              <span class="amount"><% if (o.amount_ordered != null) { %><%= formatFcfa(o.amount_ordered) %><% } else { %>Montant à confirmer<% } %></span>
+              <span class="when"><%= new Date(o.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) %></span>
+            </div>
+          </a>
+        <% }) %>
+        <a class="btn btn-ghost btn-block" href="/admin/commandes<%= demoMode ? '?demo=show' : '' %>">Voir toutes les commandes</a>
+      <% } %>
+    </div>
+
+    <div class="panel">
+      <h2>Actions rapides</h2>
+      <div class="island-btns">
+        <a class="btn btn-red" href="/admin/commandes?statut=nouvelle<%= demoMode ? '&demo=show' : '' %>">Traiter les nouvelles commandes</a>
+        <a class="btn btn-dark" href="/admin/commandes?statut=a_confirmer<%= demoMode ? '&demo=show' : '' %>">À confirmer</a>
+        <a class="btn btn-dark" href="/admin/commandes?statut=en_preparation<%= demoMode ? '&demo=show' : '' %>">Colis en préparation</a>
+        <a class="btn btn-dark" href="/admin/commandes?statut=en_livraison<%= demoMode ? '&demo=show' : '' %>">Colis en livraison</a>
+        <a class="btn btn-ghost" href="/admin/produits/nouveau">+ Ajouter un produit</a>
+        <a class="btn btn-ghost" href="/admin/commandes/export.csv<%= demoMode ? '?demo=show' : '' %>">Exporter les commandes (CSV)</a>
+        <a class="btn btn-ghost" href="/admin/statistiques" >Statistiques du mois</a>
+        <a class="btn btn-ghost" href="/admin/statistiques/resume" target="_blank">Résumé mensuel (texte)</a>
+      </div>
+
+      <% if (!demoMode) { %>
+        <div class="alert alert-info" style="margin-top:14px">
+          Les données marquées « démo » (le cas échéant) sont exclues des statistiques réelles. Purgez-les depuis l'espace Paramètres quand elles ne servent plus.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <p class="footer-admin">WMS Admin — connexion sécurisée · les commandes ne sont jamais confirmées automatiquement.</p>
+</main>
+</body>
+</html>

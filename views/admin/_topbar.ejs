@@ -1,0 +1,23 @@
+<header class="admin-top">
+  <div class="inner">
+    <a class="admin-brand" href="/admin" style="color:#fff">
+      <img src="/static/img/wms-logo.jpeg" alt="WMS">
+      <span>WMS Admin<small>Espace privé — gestion</small></span>
+    </a>
+    <span class="spacer"></span>
+    <a class="link" href="/" target="_blank">Voir la boutique</a>
+    <form method="post" action="/admin/logout" style="display:inline">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="link" type="submit">Déconnexion</button>
+    </form>
+  </div>
+  <nav class="admin-tabs" aria-label="Navigation administration">
+    <a href="/admin" class="<%= currentPath === '/admin' || currentPath === '/admin/' ? 'active' : '' %>">Tableau de bord</a>
+    <a href="/admin/commandes" class="<%= currentPath.startsWith('/admin/commandes') ? 'active' : '' %>">Commandes<% if (typeof counts !== 'undefined' && counts && counts.nouvelles > 0) { %><span class="pill"><%= counts.nouvelles %></span><% } %></a>
+    <a href="/admin/produits" class="<%= currentPath.startsWith('/admin/produits') ? 'active' : '' %>">Produits</a>
+    <a href="/admin/statistiques" class="<%= currentPath.startsWith('/admin/statistiques') ? 'active' : '' %>">Statistiques</a>
+    <a href="/admin/scripts" class="<%= currentPath.startsWith('/admin/scripts') ? 'active' : '' %>">Scripts</a>
+    <a href="/admin/campagnes" class="<%= currentPath.startsWith('/admin/campagnes') ? 'active' : '' %>">Campagnes</a>
+    <a href="/admin/parametres" class="<%= currentPath.startsWith('/admin/parametres') ? 'active' : '' %>">Paramètres</a>
+  </nav>
+</header>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title><%= title %></title>
+<meta name="description" content="<%= meta && meta.description ? meta.description : 'Wendmanegda Multiples Services (WMS) — Ouagadougou, Burkina Faso.' %>">
+<link rel="canonical" href="<%= meta && meta.url ? meta.url : (config.publicUrl || '') + currentPath %>">
+<meta name="theme-color" content="#17171c">
+<meta name="application-name" content="WMS">
+<meta name="robots" content="index,follow">
+<!-- Partage sur les réseaux sociaux -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Wendmanegda Multiples Services (WMS)">
+<meta property="og:title" content="<%= typeof title !== 'undefined' ? title : 'WMS' %>">
+<meta property="og:description" content="<%= meta && meta.description ? meta.description : 'Wendmanegda Multiples Services — Engagés pour satisfaire, motivés pour faire grandir.' %>">
+<meta property="og:url" content="<%= meta && meta.url ? meta.url : (config.publicUrl || '') + currentPath %>">
+<meta property="og:image" content="<%= (config.publicUrl || '') + ((meta && meta.image) ? meta.image : '/static/img/wms-banner.jpeg') %>">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= typeof title !== 'undefined' ? title : 'WMS' %>">
+<meta name="twitter:description" content="<%= meta && meta.description ? meta.description : 'Wendmanegda Multiples Services.' %>">
+<meta name="twitter:image" content="<%= (config.publicUrl || '') + ((meta && meta.image) ? meta.image : '/static/img/wms-banner.jpeg') %>">
+<link rel="icon" type="image/jpeg" href="/static/img/wms-logo.jpeg">
+<link rel="apple-touch-icon" href="/static/img/wms-logo.jpeg">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preload" as="image" href="/static/img/wms-banner.jpeg" imagesrcset="/static/img/wms-banner.jpeg">
+<link rel="stylesheet" href="/static/css/main.css">
+<% if (config.ga4MeasurementId) { %>
+<script async src="https://www.googletagmanager.com/gtag/js?id=<%= config.ga4MeasurementId %>"></script>
+<script nonce="<%= nonce %>">
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '<%= config.ga4MeasurementId %>');
+</script>
+<% } %>
+</head>
+<body>

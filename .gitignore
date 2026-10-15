@@ -1,0 +1,25 @@
+# Dépendances
+node_modules/
+
+# Environnement & secrets — ne jamais versionner
+.env
+.env.*
+!.env.example
+
+# Base de données et sauvegardes
+data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+backups/
+
+# Uploads utilisateurs
+public/uploads/
+!public/uploads/.gitkeep
+
+# Divers
+npm-debug.log*
+.DS_Store
+coverage/
+tmp/

@@ -1,0 +1,55 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken }) %>
+<main class="admin-main">
+
+  <div class="page-head">
+    <h1>Scripts et contenus WMS <span class="muted" style="font-weight:600">(<%= scripts.length %>)</span></h1>
+    <div class="flex">
+      <a class="btn btn-ghost btn-sm" href="/admin/scripts/export.csv">Exporter CSV</a>
+      <a class="btn btn-red btn-sm" href="/admin/scripts/nouveau">+ Nouveau contenu</a>
+    </div>
+  </div>
+
+  <form class="searchline" method="get" action="/admin/scripts">
+    <input type="search" name="q" value="<%= q %>" placeholder="Rechercher dans les scripts…" aria-label="Rechercher un script">
+    <button type="submit" class="btn-red">Rechercher</button>
+  </form>
+
+  <div class="filters">
+    <a class="chip <%= !type ? 'active' : '' %>" href="/admin/scripts">Tous</a>
+    <% Object.entries(typeLabels).forEach(function ([k, label]) { %>
+      <a class="chip <%= type === k ? 'active' : '' %>" href="/admin/scripts?type=<%= k %>"><%= label %></a>
+    <% }) %>
+  </div>
+
+  <% if (scripts.length === 0) { %>
+    <div class="panel" style="text-align:center;padding:40px 16px">
+      <div style="font-size:17px;font-weight:800;margin-bottom:6px">Bibliothèque vide</div>
+      <p class="muted">Conservez ici vos scripts publicitaires, textes de publication, voix off et dialogues commerciaux — classés, modifiables, duplicables et exportables.</p>
+      <a class="btn btn-red" href="/admin/scripts/nouveau">Ajouter le premier contenu</a>
+    </div>
+  <% } else { %>
+    <% scripts.forEach(function (s) { %>
+      <a class="order-card" href="/admin/scripts/<%= s.id %>">
+        <div class="row1">
+          <span class="num"><%= s.title %></span>
+          <span class="st <%= s.status === 'valide' ? 'st-livree' : s.status === 'archive' ? 'st-annulee' : 'st-a_confirmer' %>"><%= s.status === 'valide' ? 'Validé' : s.status === 'archive' ? 'Archivé' : 'Brouillon' %></span>
+        </div>
+        <div class="cust">
+          <span class="badge badge-gray"><%= typeLabels[s.type] || s.type %></span>
+          <% if (s.category) { %><span class="badge badge-gray"><%= s.category %></span><% } %>
+          <% if (s.is_demo) { %><span class="badge badge-red">DÉMO</span><% } %>
+        </div>
+        <div class="items"><%= s.content.slice(0, 140) %><%= s.content.length > 140 ? '…' : '' %></div>
+        <div class="row3">
+          <span class="when">Modifié le <%= new Date(s.updated_at).toLocaleDateString('fr-FR', { dateStyle: 'medium' }) %></span>
+          <% if (s.source_note) { %><span class="muted" style="font-size:12px">Source : <%= s.source_note %></span><% } %>
+        </div>
+      </a>
+    <% }) %>
+  <% } %>
+
+  <p class="footer-admin">Les brouillons (y compris les anciens textes réutilisés) ne sont jamais publiés automatiquement — publication manuelle sur les réseaux de votre choix.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<%- include('_head', { title, meta, nonce, config, currentPath, year }) %>
+<%- include('_header', { currentPath, nonce, config }) %>
+
+<main class="container">
+  <nav class="breadcrumb" aria-label="Fil d’Ariane">
+    <a href="/">Accueil</a> <span aria-hidden="true">/</span>
+    <a href="/produits">Produits</a> <span aria-hidden="true">/</span>
+    <a href="/produits?categorie=<%= encodeURIComponent(product.category) %>"><%= categoryName %></a> <span aria-hidden="true">/</span>
+    <span><%= product.name %></span>
+  </nav>
+
+  <div class="product-layout">
+    <div>
+      <div class="product-photo">
+        <% if (product.image_url) { %>
+          <img src="<%= product.image_url %>" alt="<%= product.name %>" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <span class="fallback" style="display:none">WMS — <%= product.name %></span>
+        <% } else { %>
+          <span class="fallback">
+            <span>WMS — <%= product.name %></span>
+          </span>
+        <% } %>
+      </div>
+
+      <div class="flex" style="margin-top:12px">
+        <span class="badge badge-gray"><%= categoryName %></span>
+        <% if (product.stock_enabled && product.stock_qty != null) { %>
+          <% if (product.stock_qty === 0) { %><span class="stock-chip stock-out">Rupture de stock</span>
+          <% } else if (product.stock_qty <= 3) { %><span class="stock-chip stock-low">Stock faible : <%= product.stock_qty %> restant(s)</span>
+          <% } else { %><span class="stock-chip stock-ok">Disponible</span><% } %>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="product-info">
+      <h1><%= product.name %></h1>
+
+      <div class="price-lg">
+        <% if (product.price_fcfa != null) { %>
+          <%= formatFcfa(product.price_fcfa) %>
+        <% } else { %>
+          <span style="font-size:18px;color:var(--amber)">Prix à confirmer</span>
+        <% } %>
+      </div>
+      <p class="muted" style="margin:0">
+        Paiement à la livraison. Basé à Ouagadougou, Burkina Faso.<br>
+        <% if (Object.keys(deliveryZones).length === 0) { %>
+          Frais de livraison : à confirmer selon votre commune de résidence.
+        <% } %>
+      </p>
+
+      <% if (product.short_description) { %>
+        <p class="product-desc" style="margin-top:14px"><%= product.short_description %></p>
+      <% } %>
+
+      <!-- Formulaire de commande directement sur la fiche produit -->
+      <div class="panel" id="commander">
+        <h3>Commander ce produit</h3>
+        <p class="muted" style="margin:0 0 12px">Remplissez le formulaire : nous vous rappelons pour confirmer la disponibilité, le prix et la livraison. Aucun compte requis.</p>
+
+        <form method="post" action="/commander" id="orderForm" data-product-id="<%= product.id %>">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="productId" value="<%= product.id %>">
+          <input type="hidden" name="utm_source" value="<%= utm.utm_source %>">
+          <input type="hidden" name="utm_medium" value="<%= utm.utm_medium %>">
+          <input type="hidden" name="utm_campaign" value="<%= utm.utm_campaign %>">
+          <input type="text" name="website" value="" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+          <div class="form-row">
+            <label for="customerName">Votre nom complet <span class="req">*</span></label>
+            <input type="text" id="customerName" name="customerName" maxlength="120" required autocomplete="name" placeholder="Ex. : Awa KARAMBELE">
+          </div>
+
+          <div class="form-row">
+            <label for="customerPhone">Votre numéro de téléphone <span class="req">*</span></label>
+            <input type="tel" id="customerPhone" name="customerPhone" maxlength="30" required autocomplete="tel" inputmode="tel" placeholder="Ex. : +226 70 00 13 17">
+            <div class="help">Nous vous contacterons par téléphone ou WhatsApp pour confirmer votre commande.</div>
+          </div>
+
+          <div class="form-row">
+            <label for="quantity">Quantité <span class="req">*</span></label>
+            <div class="qty-picker">
+              <button type="button" data-qty="-1" aria-label="Réduire la quantité">−</button>
+              <input type="number" id="quantity" name="quantity" value="1" min="1" max="100" required aria-label="Quantité">
+              <button type="button" data-qty="1" aria-label="Augmenter la quantité">+</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label for="customerAddress">Adresse / lieu de livraison <span class="req">*</span></label>
+            <input type="text" id="customerAddress" name="customerAddress" maxlength="300" required placeholder="Ex. : Quartier Ouaga 2000, maison n°..." autocomplete="street-address">
+            <div class="help">Livraison à Ouagadougou et environs. Délai et frais confirmés par téléphone.</div>
+          </div>
+
+          <div class="form-row">
+            <label for="customerZone">Commune / quartier (optionnel)</label>
+            <input type="text" id="customerZone" name="customerZone" maxlength="80" placeholder="Ex. : Ouaga 2000, Tampouy, Dassasgho…">
+          </div>
+
+          <div class="form-row">
+            <label for="customerNotes">Notes (optionnel)</label>
+            <textarea id="customerNotes" name="customerNotes" maxlength="500" placeholder="Couleur/variante souhaitée, précisions de livraison, etc."></textarea>
+          </div>
+
+          <div class="order-total" id="orderTotal" data-price="<%= product.price_fcfa != null ? product.price_fcfa : '' %>">
+            <span>Montant estimé</span>
+            <span id="orderTotalValue"><% if (product.price_fcfa != null) { %><%= formatFcfa(product.price_fcfa) %><% } else { %>Prix à confirmer<% } %></span>
+          </div>
+
+          <p class="notice">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-5M12 8h.01"/></svg>
+            Paiement à la livraison. Vous ne payez qu'à la réception de votre produit, après confirmation par téléphone. Aucun paiement en ligne requis pour le moment.
+          </p>
+
+          <button type="submit" class="btn btn-red btn-block mt-2" id="orderSubmit">Enregistrer ma commande</button>
+        </form>
+      </div>
+
+      <div class="flex mt-2">
+        <a class="btn btn-green" href="<%= waLink %>" target="_blank" rel="noopener" id="waProduct" data-track="whatsapp_click" data-detail="produit:<%= product.id %>" data-product-id="<%= product.id %>">
+          <svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 3C9.4 3 4 8.4 4 15c0 2.5.8 4.9 2.2 6.8L4.5 26.5l4.9-1.6c1.8 1 3.9 1.6 6 1.6 6.6 0 12.6-5 12.6-11.5S22.6 3 16 3zm5.2 15.8c-.3-.1-1.7-.8-2-1-.2-.1-.4-.1-.6.1-.2.3-.7.9-.8 1.1-.1.2-.3.2-.5.1-1.3-.6-2.2-1.3-3-2.3-.3-.4-.8-1-.9-1.3-.1-.3 0-.4.1-.6l.5-.6c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.1c-.2-.6-.5-.5-.7-.5h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 2.6 1.2 3.2 1 3.8.9.6 0 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3z"/></svg>
+          Demander sur WhatsApp
+        </a>
+        <button class="btn btn-ghost" id="shareBtn" type="button" data-title="<%= product.name %>" data-url="<%= (config.publicUrl || '') %>/produit/<%= product.slug %>">Partager</button>
+      </div>
+
+      <% if (product.description) { %>
+        <div class="panel">
+          <h3>Description</h3>
+          <div class="product-desc"><%= product.description %></div>
+        </div>
+      <% } %>
+
+      <% if (product.characteristics) { %>
+        <div class="panel">
+          <h3>Caractéristiques</h3>
+          <div class="product-desc"><%= product.characteristics %></div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (related.length) { %>
+    <section class="section" style="padding-top:0">
+      <div class="section-title"><h2>Produits similaires</h2></div>
+      <div class="grid">
+        <% related.forEach(function (p) { %>
+          <%- include('_product-card', { p, formatFcfa }) %>
+        <% }) %>
+      </div>
+    </section>
+  <% } %>
+</main>
+
+<script nonce="<%= nonce %>">
+  (function () {
+    // Sélecteur de quantité + total dynamique
+    var input = document.getElementById('quantity');
+    var totalEl = document.getElementById('orderTotalValue');
+    var totalBox = document.getElementById('orderTotal');
+    var price = totalBox && totalBox.dataset.price ? Number(totalBox.dataset.price) : null;
+    function updateTotal() {
+      if (price != null) {
+        var q = Math.max(1, Math.min(100, Number(input.value) || 1));
+        totalEl.textContent = (price * q).toLocaleString('fr-FR') + ' FCFA';
+      }
+    }
+    document.querySelectorAll('[data-qty]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var v = Math.max(1, Math.min(100, (Number(input.value) || 1) + Number(b.dataset.qty)));
+        input.value = v;
+        updateTotal();
+      });
+    });
+    input && input.addEventListener('input', updateTotal);
+
+    // Anti double-envoi + suivi
+    var form = document.getElementById('orderForm');
+    if (form) {
+      try {
+        navigator.sendBeacon && navigator.sendBeacon('/api/events', JSON.stringify({ type: 'order_start', productId: form.dataset.productId, detail: 'form_view' }));
+      } catch (e) {}
+      form.addEventListener('submit', function () {
+        var btn = document.getElementById('orderSubmit');
+        if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
+      });
+    }
+
+    // Bouton Partager
+    var shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', function () {
+        var url = shareBtn.dataset.url || location.href;
+        if (navigator.share) {
+          navigator.share({ title: shareBtn.dataset.title, url: url }).catch(function () {});
+        } else if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(function () {
+            shareBtn.textContent = 'Lien copié ✓';
+            setTimeout(function () { shareBtn.textContent = 'Partager'; }, 2000);
+          });
+        }
+      });
+    }
+  })();
+</script>
+
+<%- include('_footer', { config, year, nonce, currentPath }) %>

@@ -1,0 +1,18 @@
+<%- include('_head', { title, meta, nonce, config, currentPath, year }) %>
+<%- include('_header', { currentPath, nonce, config }) %>
+
+<main class="container" style="max-width:760px;padding:30px 16px">
+  <nav class="breadcrumb"><a href="/">Accueil</a> <span aria-hidden="true">/</span> <span>Mentions</span></nav>
+  <div class="panel" style="margin-top:16px">
+    <h1 style="font-size:22px;margin:0 0 14px">Mentions légales</h1>
+    <div class="product-desc" style="font-size:14.5px">
+      <p><strong>Éditeur.</strong> Wendmanegda Multiples Services (WMS), structure basée à Ouagadougou, Burkina Faso. Contact : <%= config.contactPhone %> (WhatsApp) et <%= config.contactPhoneAlt %>.</p>
+      <p><strong>Activité.</strong> Vente de produits et prestations : téléphones et accessoires, électronique, produits numériques, créations graphiques, services digitaux, formations WMS Academy.</p>
+      <p><strong>Conditions.</strong> Paiement à la livraison en Franc CFA (FCFA). Les prix affichés sur le site sont en cours de mise à jour : le prix définitif est confirmé par téléphone ou WhatsApp avant livraison. Frais de livraison selon la zone, communiqués avant confirmation.</p>
+      <p><strong>Retours.</strong> En cas de soucis avec un produit, contactez-nous dès la livraison ou sous 48 heures pour étude des possibilités d'échange.</p>
+      <p><strong>Propriété.</strong> Le logo, l'identité visuelle et les contenus du site appartiennent à Wendmanegda Multiples Services.</p>
+    </div>
+  </div>
+</main>
+
+<%- include('_footer', { config, year, nonce, currentPath }) %>

@@ -1,0 +1,105 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken }) %>
+<main class="admin-main" style="max-width:860px">
+
+  <div class="page-head">
+    <div>
+      <a href="/admin/produits" class="muted">← Produits</a>
+      <h1 style="margin-top:4px"><%= product && product.id ? 'Modifier : ' + product.name : 'Nouveau produit' %></h1>
+    </div>
+    <% if (product && product.id && product.slug) { %>
+      <a class="btn btn-ghost btn-sm" href="/produit/<%= product.slug %>" target="_blank">Voir la fiche publique</a>
+    <% } %>
+  </div>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (typeof ok !== 'undefined' && ok) { %><div class="alert alert-success">Produit enregistré avec succès.</div><% } %>
+
+  <form method="post" action="<%= product && product.id ? '/admin/produits/' + product.id : '/admin/produits' %>" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="panel" style="margin-top:0">
+      <h3>Informations principales</h3>
+      <div class="grid-form">
+        <div class="form-row full">
+          <label for="name">Nom du produit <span style="color:var(--red)">*</span></label>
+          <input type="text" id="name" name="name" maxlength="150" required value="<%= product ? product.name : '' %>" placeholder="Ex. : Écouteurs Bluetooth AirPods Pro 2(G2)">
+        </div>
+        <div class="form-row">
+          <label for="category">Catégorie <span style="color:var(--red)">*</span></label>
+          <select id="category" name="category" required>
+            <option value="">— Sélectionner —</option>
+            <% categories.forEach(function (c) { %>
+              <option value="<%= c.slug %>" <%= product && product.category === c.slug ? 'selected' : '' %>><%= c.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="price_fcfa">Prix (FCFA)</label>
+          <input type="number" id="price_fcfa" name="price_fcfa" min="0" max="100000000" inputmode="numeric" value="<%= product && product.price_fcfa != null ? product.price_fcfa : '' %>" placeholder="Laisser vide si prix à confirmer">
+          <div class="help">Prix affiché sur la boutique. Vide = « Prix à confirmer » (le client commande et vous appelez).</div>
+        </div>
+        <div class="form-row full">
+          <label for="short_description">Description courte (affichée sur la carte produit)</label>
+          <input type="text" id="short_description" name="short_description" maxlength="300" value="<%= product ? product.short_description : '' %>" placeholder="Ex. : Qualité premium, autonomie 24h, réduction de bruit">
+        </div>
+        <div class="form-row full">
+          <label for="description">Description complète</label>
+          <textarea id="description" name="description" maxlength="5000" placeholder="Décrire le produit : contenu du packaging, usages, compatibilité…"><%= product ? product.description : '' %></textarea>
+        </div>
+        <div class="form-row full">
+          <label for="characteristics">Caractéristiques</label>
+          <textarea id="characteristics" name="characteristics" maxlength="3000" style="min-height:90px" placeholder="Une par ligne :&#10;Marque : ✅ À compléter&#10;État : Neuf&#10;Garantie : À confirmer&#10;Couleurs : À compléter"><%= product ? product.characteristics : '' %></textarea>
+          <div class="help">Ne remplissez que des informations vérifiées. Laissez les champs inconnus « à compléter » plutôt que d'inventer des spécifications.</div>
+        </div>
+        <div class="form-row full">
+          <label for="image_url_placeholder">Image du produit</label>
+          <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp">
+          <div class="help">JPG, PNG ou WebP — taille max 2 Mo. Une bonne photo augmente les ventes.</div>
+          <% if (product && product.image_url) { %>
+            <div style="margin-top:8px"><img class="prod-thumb" style="width:110px;height:110px" src="<%= product.image_url %>" alt="Image actuelle"></div>
+            <input type="hidden" name="image_url" value="<%= product.image_url %>">
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Stock &amp; visibilité</h3>
+      <div class="grid-form">
+        <div class="form-row check">
+          <input type="hidden" name="stock_enabled" value="0">
+          <label class="check" style="margin:0">
+            <input type="checkbox" id="stock_enabled" name="stock_enabled" value="1" <%= product && product.stock_enabled ? 'checked' : '' %>>
+            Suivre le stock
+          </label>
+        </div>
+        <div class="form-row">
+          <label for="stock_qty">Quantité en stock</label>
+          <input type="number" id="stock_qty" name="stock_qty" min="0" inputmode="numeric" value="<%= product && product.stock_qty != null ? product.stock_qty : '' %>" placeholder="Nombre d'unités disponibles">
+          <div class="help">Décrémenté automatiquement uniquement lorsque vous marquez un colis comme livré.</div>
+        </div>
+        <div class="form-row check" style="grid-column:1/-1">
+          <input type="hidden" name="active" value="0">
+          <label class="check" style="margin:0">
+            <input type="checkbox" id="active" name="active" value="1" <%= !product || product.active ? 'checked' : '' %>>
+            Produit visible sur la boutique
+          </label>
+        </div>
+      </div>
+      <div class="flex" style="margin-top:8px">
+        <button class="btn btn-red" type="submit">Enregistrer le produit</button>
+        <a class="btn btn-ghost" href="/admin/produits">Annuler</a>
+      </div>
+    </div>
+  </form>
+
+  <% if (product && product.id) { %>
+    <form method="post" action="/admin/produits/<%= product.id %>/supprimer" onsubmit="return confirm('Supprimer « ' + this.dataset.name + ' » ? Les produits déjà commandés seront désactivés (historique conservé).')" data-name="<%= product.name %>">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn btn-ghost" style="color:var(--red-dark);border-color:var(--red)">Supprimer ce produit</button>
+    </form>
+  <% } %>
+</main>
+</body>
+</html>

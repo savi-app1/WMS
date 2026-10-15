@@ -1,0 +1,65 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken, counts }) %>
+<main class="admin-main">
+
+  <div class="page-head">
+    <h1>Produits &amp; services <span class="muted" style="font-weight:600">(<%= products.length %>)</span></h1>
+    <a class="btn btn-red btn-sm" href="/admin/produits/nouveau">+ Nouveau produit</a>
+  </div>
+
+  <form class="searchline" method="get" action="/admin/produits">
+    <input type="search" name="q" value="<%= q %>" placeholder="Recherche dans le catalogue…" aria-label="Rechercher un produit">
+    <button type="submit" class="btn-red">Rechercher</button>
+  </form>
+
+  <% if (products.length === 0) { %>
+    <div class="panel" style="text-align:center;padding:40px 16px">
+      <div style="font-size:17px;font-weight:800;margin-bottom:6px">Catalogue vide</div>
+      <p class="muted">Ajoutez vos produits avec leurs prix réels en FCFA. Ils apparaîtront immédiatement sur la boutique.</p>
+      <a class="btn btn-red" href="/admin/produits/nouveau">Ajouter le premier produit</a>
+    </div>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr>
+            <th></th><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Statut</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% products.forEach(function (p) { %>
+            <tr>
+              <td>
+                <% if (p.image_url) { %><img class="prod-thumb" src="<%= p.image_url %>" alt=""><% } else { %><img class="prod-thumb" src="/static/img/wms-logo.jpeg" alt="" style="opacity:.5"><% } %>
+              </td>
+              <td>
+                <strong><%= p.name %></strong><% if (p.is_demo) { %> <span class="badge badge-red">DÉMO</span><% } %>
+                <br><span class="muted" style="font-size:12px"><%= p.slug %></span>
+              </td>
+              <td><%= (categories.find(function (c) { return c.slug === p.category }) || {}).name || p.category %></td>
+              <td class="money"><% if (p.price_fcfa != null) { %><%= formatFcfa(p.price_fcfa) %><% } else { %><span style="color:var(--amber);font-size:12.5px">à confirmer</span><% } %></td>
+              <td>
+                <% if (p.stock_enabled) { %>
+                  <%= p.stock_qty != null ? p.stock_qty : '—' %>
+                <% } else { %><span class="muted" style="font-size:12px">non suivi</span><% } %>
+              </td>
+              <td><% if (p.active) { %><span class="badge badge-green" style="background:#e6f6ec;color:#136b37">Visible</span><% } else { %><span class="badge badge-gray">Masqué</span><% } %></td>
+              <td><a class="btn btn-ghost btn-sm" href="/admin/produits/<%= p.id %>">Modifier</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <div class="panel">
+    <h3>Catégories de la boutique</h3>
+    <div class="flex" style="gap:8px">
+      <% categories.forEach(function (c) { %><span class="badge badge-gray"><%= c.name %></span><% }) %>
+    </div>
+  </div>
+
+  <p class="footer-admin">Tout produit avec un prix « à confirmer » reste commandable : le client remplit le formulaire et vous confirmez le prix par téléphone.</p>
+</main>
+</body>
+</html>

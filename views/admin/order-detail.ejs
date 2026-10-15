@@ -1,0 +1,160 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken }) %>
+<main class="admin-main" style="max-width:860px">
+
+  <div class="page-head">
+    <div>
+      <a href="/admin/commandes" class="muted">← Commandes</a>
+      <h1 style="margin-top:4px"><%= order.order_number %></h1>
+    </div>
+    <span class="st st-<%= order.status %>" style="font-size:13.5px;padding:7px 13px"><%= statusLabels[order.status] %></span>
+  </div>
+
+  <% if (typeof error !== 'undefined' && error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+  <!-- Coordonnées client -->
+  <div class="panel">
+    <h2>Contact client</h2>
+    <div class="kv"><b>Nom</b><span><%= order.customer_name %></span></div>
+    <div class="kv"><b>Téléphone</b><span><a href="tel:+<%= order.customer_phone %>"><%= order.customer_phone_raw %></a></span></div>
+    <div class="kv"><b>Adresse</b><span><%= order.customer_address %></span></div>
+    <% if (order.customer_zone) { %><div class="kv"><b>Zone</b><span><%= order.customer_zone %></span></div><% } %>
+    <% if (order.customer_notes) { %><div class="kv"><b>Notes client</b><span style="white-space:pre-line"><%= order.customer_notes %></span></div><% } %>
+    <div class="kv"><b>Commande passée</b><span><%= new Date(order.created_at).toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' }) %></span></div>
+    <% if (order.utm_source || order.utm_medium || order.utm_campaign) { %>
+      <div class="kv"><b>Origine</b><span class="muted"><%= [order.utm_source, order.utm_medium, order.utm_campaign].filter(Boolean).join(' · ') %></span></div>
+    <% } %>
+
+    <div class="flex" style="margin-top:12px">
+      <a class="btn btn-green" href="<%= waLink %>" target="_blank" rel="noopener">Ouvrir la conversation WhatsApp</a>
+      <a class="btn btn-ghost" href="tel:+<%= order.customer_phone %>">Appeler le client</a>
+    </div>
+    <p class="muted" style="margin:10px 0 0;font-size:12.5px">Mes préremplis pour WhatsApp :</p>
+    <div class="flex" style="gap:8px">
+      <a class="btn-green btn-sm" href="<%= waCustom('Bonjour ' + order.customer_name + ', WMS confirme la disponibilité de votre commande ' + order.order_number + '. Nous fixons la livraison ensemble. Merci !') %>" target="_blank" rel="noopener" style="font-size:12.5px">Msg « Confirmation »</a>
+      <a class="btn-green btn-sm" href="<%= waCustom('Bonjour ' + order.customer_name + ', votre colis ' + order.order_number + ' part maintenant en livraison. Préparez le paiement à la réception. WMS.') %>" target="_blank" rel="noopener" style="font-size:12.5px">Msg « En livraison »</a>
+      <a class="btn-green btn-sm" href="<%= waCustom('Bonjour ' + order.customer_name + ', votre colis ' + order.order_number + ' est livré. Merci pour votre confiance ! Recommandez WMS autour de vous. ') %>" target="_blank" rel="noopener" style="font-size:12.5px">Msg « Livré »</a>
+    </div>
+  </div>
+
+  <!-- Contenu de la commande -->
+  <div class="panel">
+    <h2>Contenu (<%= order.items.reduce(function (a, i) { return a + i.quantity; }, 0) %> article(s))</h2>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Produit</th><th>Prix unitaire</th><th>Qté</th><th>Sous-total</th></tr></thead>
+        <tbody>
+          <% order.items.forEach(function (i) { %>
+            <tr>
+              <td>
+                <% if (i.product_id) { %>
+                  <a href="/admin/produits/<%= i.product_id %>"><%= i.product_name %></a>
+                <% } else { %><%= i.product_name %> <span class="muted">(produit retiré du catalogue)</span><% } %>
+              </td>
+              <td class="money"><% if (i.unit_price_fcfa != null) { %><%= formatFcfa(i.unit_price_fcfa) %><% } else { %><span style="color:var(--amber)">à confirmer</span><% } %></td>
+              <td><%= i.quantity %></td>
+              <td class="money"><% if (i.line_total != null) { %><%= formatFcfa(i.line_total) %><% } else { %><span style="color:var(--amber)">à confirmer</span><% } %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <div class="kv" id="montants"><b>Frais de livraison</b><span class="money"><% if (order.delivery_fee_fcfa != null) { %><%= formatFcfa(order.delivery_fee_fcfa) %><% } else { %>À confirmer<% } %></span></div>
+    <div class="kv"><b>Montant commandé</b><span class="money" style="font-weight:800"><% if (order.amount_ordered != null) { %><%= formatFcfa(order.amount_ordered) %><% } else { %>À confirmer côté serveur<% } %></span></div>
+    <div class="kv"><b>Montant confirmé</b><span class="money"><% if (order.amount_confirmed != null) { %><%= formatFcfa(order.amount_confirmed) %><% } else { %>—<% } %></span></div>
+    <div class="kv"><b>Montant livré</b><span class="money"><% if (order.amount_delivered != null) { %><%= formatFcfa(order.amount_delivered) %><% } else { %>—<% } %></span></div>
+    <div class="kv"><b>Montant encaissé</b><span class="money" style="font-weight:800;color:var(--green)"><% if (order.amount_cashed != null) { %><%= formatFcfa(order.amount_cashed) %><% } else { %>Non renseigné<% } %></span></div>
+    <p class="muted" style="margin:8px 0 0;font-size:12.5px">Mode de paiement : à la livraison. Le montant encaissé se saisit manuellement après remise du colis (il n'est jamais automatique).</p>
+  </div>
+
+  <!-- Changement de statut -->
+  <div class="panel" id="statut">
+    <% if (transitions.length) { %>
+      <h2>Changer le statut</h2>
+      <p class="muted">Statut actuel : <strong><%= statusLabels[order.status] %></strong> — chaque action est enregistrée dans l'historique.</p>
+      <% transitions.forEach(function (t) { %>
+        <form method="post" action="/admin/commandes/<%= order.id %>/statut" style="margin-bottom:10px;background:var(--gray-100);border-radius:var(--radius-sm);padding:12px">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="to_status" value="<%= t %>">
+          <div class="flex" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <strong><%= statusLabels[t] %></strong>
+              <% if (t === 'confirmee') { %>
+                <div class="muted">Confirmation manuelle après vérification de la disponibilité.</div>
+              <% } else if (t === 'livree') { %>
+                <div class="muted">Action « Colis livré » après remise effective.</div>
+              <% } else if (t === 'annulee') { %>
+                <div class="muted">Annulation gérée manuellement (client ou indisponibilité).</div>
+              <% } else if (t === 'a_confirmer') { %>
+                <div class="muted">Marquer la commande en attente de confirmation.</div>
+              <% } %>
+            </div>
+            <button class="btn <%= t === 'livree' ? 'btn-green' : t === 'annulee' ? 'btn-ghost' : 'btn-red' %>" type="submit" <%= t === 'livree' ? 'onclick="return confirm(\'Confirmer la remise du colis au client ?\')"' : (t === 'annulee' ? 'onclick="return confirm(\'Annuler cette commande ?\')"' : '') %>>
+              Passer à « <%= statusLabels[t] %> »
+            </button>
+          </div>
+          <% if (t === 'confirmee' || t === 'livree') { %>
+            <div class="grid-form" style="margin-top:10px">
+              <div class="form-row">
+                <label for="amount_<%= t %>" style="font-size:12.5px">Montant <%= t === 'confirmee' ? 'confirmé' : 'livré' %> (FCFA, optionnel)</label>
+                <input type="number" id="amount_<%= t %>" name="amount" min="0" inputmode="numeric" placeholder="Laisser vide = montant calculé automatiquement">
+              </div>
+              <% if (t === 'livree') { %>
+                <div class="form-row">
+                  <label for="cashed_<%= t %>" style="font-size:12.5px">Montant encaissé (FCFA, optionnel)</label>
+                  <input type="number" id="cashed_<%= t %>" name="amount_cashed" min="0" inputmode="numeric" placeholder="Somme réellement reçue à la remise">
+                </div>
+              <% } %>
+            </div>
+          <% } %>
+          <div class="form-row" style="margin-top:6px">
+            <input type="text" name="note" maxlength="300" placeholder="Note interne (optionnel — ex. : client rappelé, adresse précisée…)" aria-label="Note interne">
+          </div>
+        </form>
+      <% }) %>
+    <% } else { %>
+      <h2>Statut</h2>
+      <p>Cette commande est <strong><%= statusLabels[order.status] %></strong><%= order.status === 'livree' ? ' (terminée)' : '' %>. Aucun autre changement de statut n'est possible.</p>
+    <% } %>
+  </div>
+
+  <!-- Encaissement -->
+  <% if (order.status !== 'annulee') { %>
+    <div class="panel">
+      <h2>Enregistrer un encaissement</h2>
+      <form method="post" action="/admin/commandes/<%= order.id %>/encaissement">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="flex" style="gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div class="form-row" style="flex:1;min-width:180px;margin-bottom:0">
+            <label for="amount_cashed">Montant réellement encaissé (FCFA)</label>
+            <input type="number" id="amount_cashed" name="amount_cashed" min="0" required inputmode="numeric" value="<%= order.amount_cashed != null ? order.amount_cashed : '' %>" placeholder="Ex. : 15000">
+          </div>
+          <button class="btn btn-red" type="submit">Enregistrer</button>
+        </div>
+        <p class="muted" style="margin:8px 0 0;font-size:12.5px">Sépare bien l'encaissement de la livraison : un colis peut être livré sans que le paiement soit encore encaissé.</p>
+      </form>
+    </div>
+  <% } %>
+
+  <!-- Historique -->
+  <div class="panel">
+    <h2>Historique</h2>
+    <ol class="history">
+      <% order.history.forEach(function (h) { %>
+        <li>
+          <span class="t"><%= new Date(h.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) %></span>
+          <span>
+            <% if (!h.from_status) { %>Création de la commande
+            <% } else { %><b><%= statusLabels[h.from_status] || h.from_status %></b> → <b><%= statusLabels[h.to_status] || h.to_status %></b><% } %>
+            <span class="muted">(par <%= h.actor %>)</span>
+            <% if (h.note) { %><br><span class="muted"><%= h.note %></span><% } %>
+          </span>
+        </li>
+      <% }) %>
+    </ol>
+  </div>
+
+  <p class="footer-admin">Traçabilité complète — chaque action administrative est journalisée.</p>
+</main>
+</body>
+</html>

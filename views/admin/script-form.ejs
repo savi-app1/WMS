@@ -1,0 +1,87 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken }) %>
+<main class="admin-main" style="max-width:860px">
+
+  <div class="page-head">
+    <div>
+      <a href="/admin/scripts" class="muted">← Scripts et contenus</a>
+      <h1 style="margin-top:4px"><%= script && script.id ? 'Modifier : ' + script.title : 'Nouveau contenu' %></h1>
+    </div>
+  </div>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (typeof ok !== 'undefined' && ok) { %><div class="alert alert-success">Contenu enregistré.</div><% } %>
+
+  <form method="post" action="<%= script && script.id ? '/admin/scripts/' + script.id : '/admin/scripts' %>">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="panel" style="margin-top:0">
+      <div class="grid-form">
+        <div class="form-row full">
+          <label for="title">Titre <span style="color:var(--red)">*</span></label>
+          <input type="text" id="title" name="title" maxlength="150" required value="<%= script ? script.title : '' %>" placeholder="Ex. : Script vidéo — Promo montres connectées octobre">
+        </div>
+        <div class="form-row">
+          <label for="type">Type de contenu <span style="color:var(--red)">*</span></label>
+          <select id="type" name="type" required>
+            <% [
+              ['script_video', 'Script vidéo'], ['voix_off', 'Voix off'], ['publication', 'Texte de publication'],
+              ['dialogue', 'Dialogue commercial'], ['accroche', "Accroche"], ['faq', 'FAQ'],
+              ['autre', 'Autre'],
+            ].forEach(function ([v, l]) { %>
+              <option value="<%= v %>" <%= script && script.type === v ? 'selected' : '' %>><%= l %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="category">Produit / service concerné</label>
+          <input type="text" id="category" name="category" maxlength="80" value="<%= script ? script.category : '' %>" placeholder="Ex. : Smartphones, WMS Academy…">
+        </div>
+        <div class="form-row full">
+          <label for="content">Contenu</label>
+          <textarea id="content" name="content" maxlength="20000" style="min-height:220px" placeholder="Texte complet du script, de la publication ou de la voix off…"><%= script ? script.content : '' %></textarea>
+        </div>
+        <div class="form-row">
+          <label for="tags">Mots-clés (séparés par des virgules)</label>
+          <input type="text" id="tags" name="tags" maxlength="200" value="<%= script ? script.tags : '' %>" placeholder="promo, octobre, montres">
+        </div>
+        <div class="form-row">
+          <label for="source_note">Source / origine</label>
+          <input type="text" id="source_note" name="source_note" maxlength="300" value="<%= script ? script.source_note : '' %>" placeholder="Ex. : Ancien script Facebook du 12/09/2026">
+        </div>
+        <div class="form-row">
+          <label for="status">Statut</label>
+          <select id="status" name="status">
+            <option value="brouillon" <%= !script || script.status === 'brouillon' ? 'selected' : '' %>>Brouillon</option>
+            <option value="valide" <%= script && script.status === 'valide' ? 'selected' : '' %>>Validé (prêt à l'emploi)</option>
+            <option value="archive" <%= script && script.status === 'archive' ? 'selected' : '' %>>Archivé</option>
+          </select>
+          <div class="help">Un contenu validé reste en bibliothèque : la publication sur les réseaux reste manuelle.</div>
+        </div>
+      </div>
+
+      <div class="flex">
+        <button class="btn btn-red" type="submit">Enregistrer</button>
+        <a class="btn btn-ghost" href="/admin/scripts">Annuler</a>
+      </div>
+    </div>
+  </form>
+
+  <% if (script && script.id) { %>
+    <div class="panel">
+      <h3>Actions</h3>
+      <div class="flex">
+        <form method="post" action="/admin/scripts/<%= script.id %>/dupliquer">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-dark">Dupliquer</button>
+        </form>
+        <form method="post" action="/admin/scripts/<%= script.id %>/supprimer" onsubmit="return confirm('Supprimer ce contenu définitivement ?')">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-ghost" style="color:var(--red-dark);border-color:var(--red)">Supprimer</button>
+        </form>
+      </div>
+    </div>
+  <% } %>
+</main>
+</body>
+</html>

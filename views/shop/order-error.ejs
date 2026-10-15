@@ -1,0 +1,24 @@
+<%- include('_head', { title, meta, nonce, config, currentPath, year }) %>
+<%- include('_header', { currentPath, nonce, config }) %>
+
+<main class="container" style="max-width:760px;padding:34px 16px">
+  <div class="panel">
+    <h1 style="font-size:21px;margin:0 0 10px">Impossible d’enregistrer la commande</h1>
+    <div class="alert alert-error">
+      <strong>Veuillez corriger :</strong>
+      <ul>
+        <% errors.forEach(function (e) { %><li><%= e %></li><% }) %>
+      </ul>
+    </div>
+    <div class="alert alert-info">
+      Utilisez le bouton « Retour » de votre navigateur ou cliquez ci-dessous pour revenir au produit et corriger le formulaire.
+    </div>
+    <div class="flex">
+      <button class="btn btn-red" onclick="history.back()">Retour au formulaire</button>
+      <a class="btn btn-ghost" href="/produits">Voir le catalogue</a>
+      <a class="btn btn-green" href="https://wa.me/<%= config.whatsappNumber %>?text=<%= encodeURIComponent('Bonjour WMS, je souhaite passer une commande.') %>" target="_blank" rel="noopener">Commander sur WhatsApp</a>
+    </div>
+  </div>
+</main>
+
+<%- include('_footer', { config, year, nonce, currentPath }) %>

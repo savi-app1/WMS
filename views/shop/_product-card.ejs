@@ -1,0 +1,25 @@
+<a class="card" href="/produit/<%= p.slug %>" data-product-id="<%= p.id %>">
+  <div class="thumb">
+    <% if (p.image_url) { %>
+      <img src="<%= p.image_url %>" alt="<%= p.name %>" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <span class="fallback" style="display:none">WMS<br><%= p.name %></span>
+    <% } else { %>
+      <span class="fallback"><img src="/static/img/wms-logo.jpeg" alt="" style="width:60px;height:60px;object-fit:contain;opacity:.55"><br><%= p.name %></span>
+    <% } %>
+  </div>
+  <div class="body">
+    <div class="name"><%= p.name %></div>
+    <% if (p.short_description) { %><div class="short"><%= p.short_description %></div><% } %>
+    <div class="price-row">
+      <span class="price">
+        <% if (p.price_fcfa != null) { %><%= formatFcfa(p.price_fcfa) %>
+        <% } else { %><span class="to-confirm">Prix à confirmer</span><% } %>
+      </span>
+      <% if (p.stock_enabled && p.stock_qty != null) { %>
+        <% if (p.stock_qty === 0) { %><span class="stock-chip stock-out">Épuisé</span>
+        <% } else if (p.stock_qty <= 3) { %><span class="stock-chip stock-low">Stock faible</span>
+        <% } else { %><span class="stock-chip stock-ok">Disponible</span><% } %>
+      <% } %>
+    </div>
+  </div>
+</a>

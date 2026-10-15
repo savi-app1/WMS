@@ -1,0 +1,71 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken }) %>
+<main class="admin-main" style="max-width:860px">
+
+  <div class="page-head">
+    <h1>Paramètres</h1>
+  </div>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+  <div class="panel" style="margin-top:0">
+    <h3 style="margin:0 0 8px">Mot de passe administrateur</h3>
+    <form method="post" action="/admin/parametres/mot-de-passe">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="grid-form">
+        <div class="form-row">
+          <label for="current_password">Mot de passe actuel</label>
+          <input type="password" id="current_password" name="current_password" required autocomplete="current-password">
+        </div>
+        <div class="form-row">
+          <label for="new_password">Nouveau mot de passe (10 caractères min.)</label>
+          <input type="password" id="new_password" name="new_password" required minlength="10" autocomplete="new-password">
+        </div>
+        <div class="form-row">
+          <label for="confirm_password">Confirmer le nouveau mot de passe</label>
+          <input type="password" id="confirm_password" name="confirm_password" required minlength="10" autocomplete="new-password">
+        </div>
+      </div>
+      <button class="btn btn-red" type="submit">Modifier le mot de passe</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin:0 0 8px">Frais de livraison par zone (FCFA)</h3>
+    <p class="muted">Format JSON : <code>{"Ouagadougou centre": 500, "Périphérie": 1000}</code>. Une zone absente = « frais à confirmer ». Valeur vide = tous les frais à confirmer.</p>
+    <form method="post" action="/admin/parametres/zones">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-row">
+        <textarea id="zones_json" name="zones_json" rows="5" style="font-family:monospace;font-size:13.5px" placeholder="{}"><%= JSON.stringify(zones, null, 2) %></textarea>
+      </div>
+      <button class="btn btn-red" type="submit">Enregistrer les zones</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin:0 0 8px">Données de démonstration</h3>
+    <p class="muted">Les données de test (commandes, produits marqués « DÉMO ») peuvent être supprimées en une fois. Les commandes réelles ne sont jamais supprimées.</p>
+    <form method="post" action="/admin/demo/purge" onsubmit="return confirm('Supprimer toutes les données de démonstration ? Les données réelles seront conservées.')">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="btn btn-ghost" type="submit" style="color:var(--red-dark);border-color:var(--red)">Purger les données de démonstration</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin:0 0 8px">Intégrations (état réel)</h3>
+    <table class="char-table" style="font-size:14px">
+      <tr><td>Paiement en ligne</td><td><span class="badge badge-gray">Non configuré</span><br><span class="muted">Paiement à la livraison actif. Mobile Money à configurer par le propriétaire.</span></td></tr>
+      <tr><td>WhatsApp Business API</td><td><span class="badge badge-gray">Non configurée</span><br><span class="muted">Liens wa.me avec message prérempli (action manuelle). Aucun envoi automatique.</span></td></tr>
+      <tr><td>Google Analytics 4</td><td>
+        <% if (config.ga4MeasurementId) { %><span class="badge badge-green" style="background:#e6f6ec;color:#136b37">Configurée</span><% } else { %><span class="badge badge-gray">Non configurée</span><% } %>
+        <br><span class="muted">Événements internes réels actifs (Statistiques). GA4 à activer via GA4_MEASUREMENT_ID.</span>
+      </td></tr>
+      <tr><td>Sauvegarde base de données</td><td><span class="badge badge-green" style="background:#e6f6ec;color:#136b37">Script disponible</span><br><span class="muted">Commande : <code>npm run backup</code> — copie horodatée dans <code>backups/</code>.</span></td></tr>
+    </table>
+  </div>
+
+  <p class="footer-admin">Version 1.0 — Espace strictement privé.</p>
+</main>
+</body>
+</html>

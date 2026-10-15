@@ -1,0 +1,46 @@
+<%- include('_head', { title, meta, nonce, config, currentPath, year }) %>
+<%- include('_header', { currentPath, nonce, config }) %>
+
+<main class="container" style="padding-top:24px">
+  <nav class="breadcrumb"><a href="/">Accueil</a> <span aria-hidden="true">/</span> <span>Services</span></nav>
+
+  <section class="section">
+    <h1 style="font-size:clamp(22px,4vw,29px);margin:6px 0 10px">Services digitaux WMS</h1>
+    <p class="muted" style="max-width:65ch">Prix et conditions à confirmer après étude de votre demande. Contactez-nous sur <a href="https://wa.me/<%= config.whatsappNumber %>" target="_blank" rel="noopener">WhatsApp</a> avec les détails de votre projet pour recevoir un devis.</p>
+
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin-top:18px">
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 8px">Créations graphiques</h3>
+        <p class="muted" style="margin:0 0 10px">Logos professionnels, affiches, flyers, cartes de visite, bannières publicitaires.</p>
+        <a class="btn btn-outline btn-sm" href="https://wa.me/<%= config.whatsappNumber %>?text=<%= encodeURIComponent('Bonjour WMS, je souhaite un devis pour une création graphique (logo, affiche, flyer).') %>" target="_blank" rel="noopener">Demander un devis</a>
+      </div>
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 8px">Contenus publicitaires</h3>
+        <p class="muted" style="margin:0 0 10px">Textes de publications, accroches, scripts vidéo et voix off pour vos campagnes.</p>
+        <a class="btn btn-outline btn-sm" href="https://wa.me/<%= config.whatsappNumber %>?text=<%= encodeURIComponent('Bonjour WMS, je souhaite des contenus publicitaires.') %>" target="_blank" rel="noopener">Demander un devis</a>
+      </div>
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 8px">Accompagnement e-commerce</h3>
+        <p class="muted" style="margin:0 0 10px">Conseils de lancement, optimisation des ventes, stratégies de croissance en ligne.</p>
+        <a class="btn btn-outline btn-sm" href="https://wa.me/<%= config.whatsappNumber %>?text=<%= encodeURIComponent('Bonjour WMS, je souhaite un accompagnement e-commerce.') %>" target="_blank" rel="noopener">Demander un devis</a>
+      </div>
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 8px">Gestion de pages &amp; campagnes</h3>
+        <p class="muted" style="margin:0 0 10px">Gestion de pages professionnelles, campagnes publicitaires ciblées et suivi.</p>
+        <a class="btn btn-outline btn-sm" href="https://wa.me/<%= config.whatsappNumber %>?text=<%= encodeURIComponent('Bonjour WMS, je souhaite la gestion de ma page ou une campagne publicitaire.') %>" target="_blank" rel="noopener">Demander un devis</a>
+      </div>
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 8px">Formations WMS Academy</h3>
+        <p class="muted" style="margin:0 0 10px">Formations en ligne à distance : e-commerce, marketing digital, vente en ligne.</p>
+        <a class="btn btn-outline btn-sm" href="https://wa.me/<%= config.whatsappNumber %>?text=<%= encodeURIComponent('Bonjour WMS, je souhaite des informations sur les formations WMS Academy.') %>" target="_blank" rel="noopener">Demander les programmes</a>
+      </div>
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 8px">Produits numériques</h3>
+        <p class="muted" style="margin:0 0 10px">Livres PDF, ebooks, guides pratiques et contenus audiovisuels de formation.</p>
+        <a class="btn btn-outline btn-sm" href="/produits?categorie=formations">Voir les produits numériques</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('_footer', { config, year, nonce, currentPath }) %>

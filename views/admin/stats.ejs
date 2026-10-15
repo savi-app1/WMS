@@ -1,0 +1,116 @@
+<%- include('_head', { title, config }) %>
+<%- include('_topbar', { currentPath, csrfToken, counts }) %>
+<main class="admin-main">
+
+  <div class="page-head">
+    <h1>Statistiques commerciales</h1>
+    <a class="btn btn-ghost btn-sm" href="/admin/statistiques/resume" target="_blank">Résumé textuel du mois</a>
+  </div>
+
+  <!-- Sélecteur de période -->
+  <form class="panel" method="get" action="/admin/statistiques" style="margin-top:0">
+    <div class="flex" style="align-items:end">
+      <div class="form-row" style="margin:0">
+        <label for="mois">Mois</label>
+        <select id="mois" name="mois">
+          <% for (var m = 1; m <= 12; m += 1) { %>
+            <option value="<%= m %>" <%= m === month ? 'selected' : '' %>><%= new Date(year, m - 1, 1).toLocaleDateString('fr-FR', { month: 'long' }) %></option>
+          <% } %>
+        </select>
+      </div>
+      <div class="form-row" style="margin:0">
+        <label for="annee">Année</label>
+        <input type="number" id="annee" name="annee" value="<%= year %>" min="2024" max="2100" style="width:110px">
+      </div>
+      <button class="btn btn-red" type="submit">Afficher</button>
+    </div>
+  </form>
+
+  <!-- Chiffres du mois -->
+  <div class="panel">
+    <h2><%= monthStats.label %></h2>
+    <div class="big-figures">
+      <div class="bigfg"><span class="v"><%= monthStats.totals.orders_count || 0 %></span><span class="l">Commandes reçues</span></div>
+      <div class="bigfg"><span class="v"><%= monthStats.totals.confirmed_count || 0 %></span><span class="l">Confirmées</span></div>
+      <div class="bigfg"><span class="v"><%= monthStats.totals.delivered_count || 0 %></span><span class="l">Livrées</span></div>
+      <div class="bigfg"><span class="v"><%= monthStats.totals.cancelled_count || 0 %></span><span class="l">Annulées</span></div>
+      <div class="bigfg"><span class="v"><%= monthStats.totals.confirmRate != null ? monthStats.totals.confirmRate + ' %' : '—' %></span><span class="l">Taux de confirmation</span></div>
+      <div class="bigfg"><span class="v"><%= monthStats.totals.deliveryRate != null ? monthStats.totals.deliveryRate + ' %' : '—' %></span><span class="l">Taux de livraison</span></div>
+      <div class="bigfg"><span class="v"><%= monthStats.totals.amount_ordered != null ? monthStats.totals.amount_ordered.toLocaleString('fr-FR') : '—' %></span><span class="l">Valeur commandée (FCFA)</span></div>
+      <div class="bigfg"><span class="v"><%= monthStats.totals.amount_cashed != null ? monthStats.totals.amount_cashed.toLocaleString('fr-FR') : '0' %></span><span class="l">Encaissé (FCFA)</span></div>
+    </div>
+    <% if (monthStats.previous.orders_count != null) { %>
+      <p class="muted" style="margin:12px 0 0">Mois précédent : <%= monthStats.previous.orders_count || 0 %> commande(s), <%= monthStats.previous.delivered_count || 0 %> livrée(s), <%= (monthStats.previous.amount_ordered || 0).toLocaleString('fr-FR') %> FCFA commandés.</p>
+    <% } %>
+  </div>
+
+  <!-- Commandes par jour -->
+  <div class="panel">
+    <h2>Commandes par jour — <%= monthStats.label %></h2>
+    <% if (monthStats.byDay.length === 0) { %>
+      <p class="muted">Aucune commande sur cette période.</p>
+    <% } else { %>
+      <% var maxDay = Math.max.apply(null, monthStats.byDay.map(function (d) { return d.n; })); %>
+      <div class="bars">
+        <% monthStats.byDay.forEach(function (d) { %>
+          <div class="bar-row">
+            <span><%= d.day.slice(8, 10) %>/<%= d.day.slice(5, 7) %></span>
+            <span class="track"><span class="fill" style="width:<%= Math.max(4, Math.round((d.n / maxDay) * 100)) %>%"></span></span>
+            <span class="v"><%= d.n %> cmd · <%= d.delivered %> livrée(s)</span>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <h2>Top produits du mois</h2>
+      <% if (monthStats.topProducts.length === 0) { %>
+        <p class="muted">Aucune donnée sur cette période.</p>
+      <% } else { %>
+        <ol style="margin:0;padding-left:20px;font-size:14px;display:grid;gap:7px">
+          <% monthStats.topProducts.forEach(function (p) { %>
+            <li><strong><%= p.product_name %></strong> — <%= p.qty %> unité(s)<% if (p.total_known > 0) { %> · <%= p.total_known.toLocaleString('fr-FR') %> FCFA connus<% } %></li>
+          <% }) %>
+        </ol>
+      <% } %>
+    </div>
+    <div class="panel">
+      <h2>Trafic du site (30 derniers jours)</h2>
+      <% if (!ga4Configured) { %>
+        <div class="alert alert-info" style="font-size:13px">
+          Google Analytics 4 n'est pas encore configuré. Les chiffres ci-dessous proviennent des événements internes réels du site (jamais extrapolés). Configurez GA4_MEASUREMENT_ID pour compléter avec les données Google.
+        </div>
+      <% } %>
+      <div class="big-figures" style="grid-template-columns:repeat(2,1fr)">
+        <div class="bigfg"><span class="v"><%= traffic.byType.product_view || 0 %></span><span class="l">Pages produit vues</span></div>
+        <div class="bigfg"><span class="v"><%= traffic.byType.whatsapp_click || 0 %></span><span class="l">Clics WhatsApp</span></div>
+        <div class="bigfg"><span class="v"><%= traffic.byType.order_start || 0 %></span><span class="l">Formulaires de commande ouverts</span></div>
+        <div class="bigfg"><span class="v"><%= traffic.byType.order_placed || 0 %></span><span class="l">Envois de commande</span></div>
+        <div class="bigfg"><span class="v"><%= traffic.byType.search || 0 %></span><span class="l">Recherches</span></div>
+        <div class="bigfg"><span class="v"><%= (traffic.byType.page_view || 0) %></span><span class="l">Pages informatives vues</span></div>
+      </div>
+      <% if (traffic.byUtm.length) { %>
+        <h3 style="margin:14px 0 8px">Sources UTM</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Source</th><th>Médium</th><th>Campagne</th><th>Visites</th></tr></thead>
+            <tbody>
+              <% traffic.byUtm.forEach(function (u) { %>
+                <tr><td><%= u.utm_source || '—' %></td><td><%= u.utm_medium || '—' %></td><td><%= u.utm_campaign || '—' %></td><td><%= u.n %></td></tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p class="muted">Aucune visite UTM sur la période. Utilisez des paramètres utm_source / utm_medium / utm_campaign dans vos liens pour distinguer vos campagnes.</p>
+      <% } %>
+      <p class="muted" style="margin:12px 0 0;font-size:12.5px">Le taux de clic des publicités (CTR) est fourni par les plateformes publicitaires (Facebook Ads, TikTok Ads) et non par ce tableau de bord.</p>
+    </div>
+  </div>
+
+  <p class="footer-admin">Statistiques calculées uniquement sur les commandes réelles (données de démonstration exclues).</p>
+</main>
+</body>
+</html>
