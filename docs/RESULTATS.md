@@ -10,7 +10,7 @@
 | Élément | État | Adresse |
 | --- | --- | --- |
 | Application complète (boutique + administration) | **En ligne**, testée de bout en bout | Prévisualisation de l'environnement de développement : `https://3000-ilpq53tmnn6oavj5if7zc.e2b.app` |
-| Code source | **Publié** | https://github.com/savi-app1/WMS (branche `main` après fusion de la demande de tirage) |
+| Code source | **Publié** sur `main` | https://github.com/savi-app1/WMS — demande de tirage n° 1 fusionnée le 15 octobre 2026 (CI verte avant et après fusion) |
 | Intégration continue | **Verte** | https://github.com/savi-app1/WMS/actions |
 
 L'instance en ligne exécute une compilation **de production** (`next start`), avec une base
@@ -115,6 +115,7 @@ la version 9 (`eslint.config.mjs` ajouté, `next lint` déprécié abandonné).
 | Notifications WhatsApp automatiques | Non implémentées : l'API WhatsApp Business est payante et exige une validation Meta. Les liens `wa.me` ouvrent la conversation pré-remplie, mais **l'envoi reste une action manuelle**. |
 | Assistant IA connecté | Volontairement hors ligne : génération de brouillons localement, sans appel à un service externe payant ni envoi de données clientes. |
 | Réseaux sociaux | Les pages Facebook/TikTok du propriétaire n'ont **pas** été utilisées ni modifiées ; aucun budget publicitaire n'a été engagé. |
+| Limitation de débit | 5 commandes par heure et par adresse IP (protection anti-spam). Pendant les essais, ce plafond est vite atteint ; il se règle dans `src/app/api/orders/route.ts`. |
 
 ---
 
